@@ -1,0 +1,5 @@
+/home/ronald/Dropbox/UFBA/Introdução a Sistemas Distribuidos/TimeSync/TimeSync/obj/x86/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/home/ronald/Dropbox/UFBA/Introdução a Sistemas Distribuidos/TimeSync/TimeSync/bin/Debug/TimeSync.exe.mdb
+/home/ronald/Dropbox/UFBA/Introdução a Sistemas Distribuidos/TimeSync/TimeSync/bin/Debug/TimeSync.exe
+/home/ronald/Dropbox/UFBA/Introdução a Sistemas Distribuidos/TimeSync/TimeSync/obj/x86/Debug/TimeSync.exe
+/home/ronald/Dropbox/UFBA/Introdução a Sistemas Distribuidos/TimeSync/TimeSync/obj/x86/Debug/TimeSync.exe.mdb

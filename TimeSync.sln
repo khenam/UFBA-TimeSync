@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientTimeSync", "ClientTim
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestTimeSync", "TestTimeSync\TestTimeSync.csproj", "{9B031281-C879-49AC-A8C4-8DBDACC253E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeSyncGTK", "TimeSyncGTK\TimeSyncGTK.csproj", "{C78B751B-922A-47D3-A1DE-7275FAC99126}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeSyncBase", "TimeSyncBase\TimeSyncBase.csproj", "{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -19,6 +23,10 @@ Global
 		{03049F90-E866-40AD-86B0-73B36ACE010F}.Debug|x86.Build.0 = Debug|Any CPU
 		{03049F90-E866-40AD-86B0-73B36ACE010F}.Release|x86.ActiveCfg = Release|Any CPU
 		{03049F90-E866-40AD-86B0-73B36ACE010F}.Release|x86.Build.0 = Release|Any CPU
+		{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}.Debug|x86.Build.0 = Debug|Any CPU
+		{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}.Release|x86.ActiveCfg = Release|Any CPU
+		{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}.Release|x86.Build.0 = Release|Any CPU
 		{786135FB-BCBA-4795-A410-FFEFD6FDF24F}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{786135FB-BCBA-4795-A410-FFEFD6FDF24F}.Debug|x86.Build.0 = Debug|Any CPU
 		{786135FB-BCBA-4795-A410-FFEFD6FDF24F}.Release|x86.ActiveCfg = Release|Any CPU
@@ -31,5 +39,9 @@ Global
 		{B2FA3871-065F-4C00-BB5E-F450C18BD6F3}.Debug|x86.Build.0 = Debug|x86
 		{B2FA3871-065F-4C00-BB5E-F450C18BD6F3}.Release|x86.ActiveCfg = Release|x86
 		{B2FA3871-065F-4C00-BB5E-F450C18BD6F3}.Release|x86.Build.0 = Release|x86
+		{C78B751B-922A-47D3-A1DE-7275FAC99126}.Debug|x86.ActiveCfg = Debug|x86
+		{C78B751B-922A-47D3-A1DE-7275FAC99126}.Debug|x86.Build.0 = Debug|x86
+		{C78B751B-922A-47D3-A1DE-7275FAC99126}.Release|x86.ActiveCfg = Release|x86
+		{C78B751B-922A-47D3-A1DE-7275FAC99126}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 EndGlobal

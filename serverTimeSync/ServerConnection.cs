@@ -2,9 +2,9 @@
 
 namespace ServerTimeSync
 {
-	public class MyClass
+	public class ServerConnection
 	{
-		public MyClass ()
+		public ServerConnection ()
 		{
 		}
 	}

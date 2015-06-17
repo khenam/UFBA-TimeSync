@@ -1,9 +1,10 @@
 ﻿using System;
 
-namespace TimeSyncBase
+namespace TimeSyncBase.messages.responses
 {
-	public class TimeSyncResponse
+	public class TimeSyncResponse : TimeSyncMessage
 	{
+		public const int IdMessage = 2;
 		public DateTime RequestTime { get; set;}
 		public DateTime ReceivedTime { get; set;}
 		public DateTime ResponseTime { get; set;}

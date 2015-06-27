@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace TimeSyncBase.messages
 {
-	abstract class TimeSyncMessage
+    public abstract class TimeSyncMessage
 	{
 		public virtual string ToJSON()
 		{
@@ -11,4 +11,3 @@ namespace TimeSyncBase.messages
 		}
 	}
 }
-

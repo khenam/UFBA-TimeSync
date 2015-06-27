@@ -18,23 +18,42 @@ namespace ServerTimeSync
 		public StringBuilder sb = new StringBuilder();  
 	}
 
-	public class AsynchronousSocketListener {
+    public class AsynchronousSocketListener : IDisposable
+    {
 		// Thread signal.
-		public static ManualResetEvent allDone = new ManualResetEvent(false);
+		private ManualResetEvent allDone = new ManualResetEvent(false);
+        private ManualResetEvent CanExit = new ManualResetEvent(false);
+        public event EventHandler<Socket> OnConnect;
+        public event EventHandler<StateObject> OnReceive;
+        public event EventHandler<int> OnSend;
 
-		public AsynchronousSocketListener() {
+	    private IPAddress _ipAddress;
+	    private uint _port;
+		public AsynchronousSocketListener(uint defaultPort, IPAddress ipAddress=null)
+		{
+		    _ipAddress = ipAddress;
+		    _port = defaultPort;
 		}
 
-		public static void StartListening() {
+	    public void StartListening(){
 			// Data buffer for incoming data.
 			byte[] bytes = new Byte[1024];
 
 			// Establish the local endpoint for the socket.
 			// The DNS name of the computer
 			// running the listener is "host.contoso.com".
-			IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
-			IPAddress ipAddress = ipHostInfo.AddressList[0];
-			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
+		    IPHostEntry ipHostInfo;
+		    IPAddress ipAddress;
+		    if (_ipAddress == null)
+		    {
+                ipHostInfo = Dns.Resolve(Dns.GetHostName());
+                ipAddress = ipHostInfo.AddressList[0];    
+		    }
+		    else
+		    {
+		        ipAddress = _ipAddress;
+		    }
+			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, (int) _port);
 
 			// Create a TCP/IP socket.
 			Socket listener = new Socket(AddressFamily.InterNetwork,
@@ -44,8 +63,7 @@ namespace ServerTimeSync
 			try {
 				listener.Bind(localEndPoint);
 				listener.Listen(100);
-
-				while (true) {
+                while (!CanExit.WaitOne(0,false)) {
 					// Set the event to nonsignaled state.
 					allDone.Reset();
 
@@ -63,18 +81,23 @@ namespace ServerTimeSync
 				Console.WriteLine(e.ToString());
 			}
 
+            listener.Shutdown(SocketShutdown.Both);
+            listener.Close();
 			Console.WriteLine("\nPress ENTER to continue...");
 			Console.Read();
 
 		}
 
-		public static void AcceptCallback(IAsyncResult ar) {
+		public void AcceptCallback(IAsyncResult ar) {
 			// Signal the main thread to continue.
 			allDone.Set();
-
+            
 			// Get the socket that handles the client request.
 			Socket listener = (Socket) ar.AsyncState;
 			Socket handler = listener.EndAccept(ar);
+            
+            if (OnConnect != null)
+                OnConnect(this, listener);
 
 			// Create the state object.
 			StateObject state = new StateObject();
@@ -83,7 +106,7 @@ namespace ServerTimeSync
 				new AsyncCallback(ReadCallback), state);
 		}
 
-		public static void ReadCallback(IAsyncResult ar) {
+		public void ReadCallback(IAsyncResult ar) {
 			String content = String.Empty;
 
 			// Retrieve the state object and the handler socket
@@ -101,23 +124,22 @@ namespace ServerTimeSync
 
 				// Check for end-of-file tag. If it is not there, read 
 				// more data.
-				content = state.sb.ToString();
-				if (content.IndexOf("<EOF>") > -1) {
-					// All the data has been read from the 
-					// client. Display it on the console.
-					Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
-						content.Length, content );
-					// Echo the data back to the client.
-					Send(handler, content);
-				} else {
-					// Not all data received. Get more.
-					handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-						new AsyncCallback(ReadCallback), state);
-				}
+//                content = state.sb.ToString();
+			    
+                if (OnReceive != null)
+                    OnReceive(this, state);
+                state.sb.Clear();
+			    
 			}
+
+            if (!CanExit.WaitOne(0, false))
+            {
+                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReadCallback), state);
+            }
 		}
 
-		private static void Send(Socket handler, String data) {
+		public void Send(Socket handler, String data) {
 			// Convert the string data to byte data using ASCII encoding.
 			byte[] byteData = Encoding.ASCII.GetBytes(data);
 
@@ -126,7 +148,7 @@ namespace ServerTimeSync
 				new AsyncCallback(SendCallback), handler);
 		}
 
-		private static void SendCallback(IAsyncResult ar) {
+		private void SendCallback(IAsyncResult ar) {
 			try {
 				// Retrieve the socket from the state object.
 				Socket handler = (Socket) ar.AsyncState;
@@ -135,18 +157,21 @@ namespace ServerTimeSync
 				int bytesSent = handler.EndSend(ar);
 				Console.WriteLine("Sent {0} bytes to client.", bytesSent);
 
-				handler.Shutdown(SocketShutdown.Both);
-				handler.Close();
+                if (OnSend!= null)
+                    OnSend(this, bytesSent);
+
+//				handler.Shutdown(SocketShutdown.Both);
+//				handler.Close();
 
 			} catch (Exception e) {
 				Console.WriteLine(e.ToString());
 			}
 		}
 
-
-		public static int Main(String[] args) {
-			StartListening();
-			return 0;
-		}
+        public void Dispose()
+        {
+            CanExit.Set();
+            allDone.Set();
+        }
 	}
 }

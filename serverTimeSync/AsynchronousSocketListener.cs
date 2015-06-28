@@ -63,7 +63,8 @@ namespace ServerTimeSync
 			try {
 				listener.Bind(localEndPoint);
 				listener.Listen(100);
-                while (!CanExit.WaitOne(0,false)) {
+			    CanExit.Reset();
+                while (!CanExit.WaitOne(0)) {
 					// Set the event to nonsignaled state.
 					allDone.Reset();
 
@@ -132,7 +133,7 @@ namespace ServerTimeSync
 			    
 			}
 
-            if (!CanExit.WaitOne(0, false))
+            if (!CanExit.WaitOne(0))
             {
                 handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(ReadCallback), state);

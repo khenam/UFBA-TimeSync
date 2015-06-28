@@ -91,7 +91,7 @@ namespace ServerTimeSync
 	        _asynchronousSocketListener.Dispose();
             if ((_serverThread != null) && _serverThread.IsAlive)
 	        {
-//                _serverThread.Abort();
+                _serverThread.Abort();
                 _serverThread.Join();
 	        }
 	            

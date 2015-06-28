@@ -11,7 +11,7 @@ using StateObject = ServerTimeSync.StateObject;
 namespace TestTimeSync
 {
 	[TestFixture]
-	public class TestServerTimeSync
+	public class TestServerClientTimeSync
 	{
 	    private const int DefaultPort = 4781;
 	    private const int DefaultTimeout = 5000;

@@ -4,8 +4,8 @@ namespace TimeSyncBase.messages.requests
 {
 	public class TimeSyncConnectedClientsRequest : TimeSyncMessage
 	{
-		public const int IdMessage = 3;
-		public TimeSyncConnectedClientsRequest ()
+        public TimeSyncConnectedClientsRequest()
+            : base((int)ETimeSyncMessageTypes.TimeSyncConnectedClientsRequest)
 		{
 		}
 	}

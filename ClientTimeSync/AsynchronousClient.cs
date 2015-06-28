@@ -3,21 +3,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
+using ServerTimeSync;
+using TimeSyncBase.Connection;
 
 namespace ClientTimeSync
 {
-	// State object for receiving data from remote device.
-	public class StateObject {
-		// Client socket.
-		public Socket workSocket = null;
-		// Size of receive buffer.
-		public const int BufferSize = 256;
-		// Receive buffer.
-		public byte[] buffer = new byte[BufferSize];
-		// Received data string.
-		public StringBuilder sb = new StringBuilder();
-	}
-
 	public class AsynchronousClient : IDisposable{
 		// The port number for the remote device.
 		public int Port { get; protected set; }
@@ -118,6 +108,7 @@ namespace ClientTimeSync
 
 		private void ReceiveCallback( IAsyncResult ar ) {
 			try {
+                DateTime receiveTime = DateTime.Now;
 				// Retrieve the state object and the client socket 
 				// from the asynchronous state object.
 				StateObject state = (StateObject) ar.AsyncState;
@@ -129,7 +120,7 @@ namespace ClientTimeSync
 				if (bytesRead > 0) {
 					// There might be more data, so store the data received so far.
 					state.sb.Append(Encoding.ASCII.GetString(state.buffer,0,bytesRead));
-
+                    state.receiveTime = receiveTime;
 					// Get the rest of the data.
                     if (OnReceive != null)
                         OnReceive(this, state);

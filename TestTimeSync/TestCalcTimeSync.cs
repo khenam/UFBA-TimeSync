@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using NUnit.Framework;
 using TimeSyncBase;
 
@@ -45,6 +46,16 @@ namespace TestTimeSync
             DateTime serverTime = timePlusOne.Add(_oneSecond);
             var CalculatedDate = Calculator.PullTimeSyncCalc(_localSendTime, timePlusOne, serverTime, timePlusFive);
             Assert.That(CalculatedDate, Is.EqualTo(serverTime.Add(_twoSeconds)));
-        } 
+        }
+
+        [Test]
+        public void LocalTimeTimeStampValidation()
+        {
+            LocalTime localTime = new LocalTime(_localSendTime);
+            localTime.SetDateTime(DateTime.Now.Add(_5Seconds));
+            Assert.That(localTime.GetTimeSpan(), Is.EqualTo(_5Seconds));
+            Thread.Sleep(1000);
+            Assert.That(localTime.GetDateTime(), Is.EqualTo(DateTime.Now.Add(_5Seconds)));
+        }
     }
 }

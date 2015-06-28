@@ -2,11 +2,11 @@
 
 namespace TimeSyncBase.messages.responses
 {
-	public class TimeSyncConnectedClientsResponse
+    public class TimeSyncConnectedClientsResponse : TimeSyncMessage
 	{
-		public const int IdMessage = 4;
 		public string[] ClientsIps;
-		public TimeSyncConnectedClientsResponse ()
+        public TimeSyncConnectedClientsResponse()
+            : base((int)ETimeSyncMessageTypes.TimeSyncConnectedClientsResponse)
 		{
 		}
 	}

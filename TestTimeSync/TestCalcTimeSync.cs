@@ -53,9 +53,9 @@ namespace TestTimeSync
         {
             LocalTime localTime = new LocalTime(_localSendTime);
             localTime.SetDateTime(DateTime.Now.Add(_5Seconds));
-            Assert.That(localTime.GetTimeSpan(), Is.EqualTo(_5Seconds));
+			Assert.That(Math.Round(localTime.GetTimeSpan().TotalMilliseconds,0), Is.EqualTo(_5Seconds.TotalMilliseconds));
             Thread.Sleep(1000);
-            Assert.That(localTime.GetDateTime(), Is.EqualTo(DateTime.Now.Add(_5Seconds)));
+			Assert.That(localTime.GetDateTime().ToString("yyyy-MM-dd hh:mm:ss"), Is.EqualTo(DateTime.Now.Add(_5Seconds).ToString("yyyy-MM-dd hh:mm:ss")));
         }
     }
 }

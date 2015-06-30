@@ -20,7 +20,9 @@ namespace ServerTimeSync
 
 	    private IPAddress _ipAddress;
 	    private uint _port;
-		public AsynchronousSocketListener(uint defaultPort, IPAddress ipAddress=null)
+        private Socket _listener;
+
+        public AsynchronousSocketListener(uint defaultPort, IPAddress ipAddress=null)
 		{
 		    _ipAddress = ipAddress;
 		    _port = defaultPort;
@@ -47,13 +49,13 @@ namespace ServerTimeSync
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, (int) _port);
 
 			// Create a TCP/IP socket.
-			Socket listener = new Socket(AddressFamily.InterNetwork,
-				SocketType.Stream, ProtocolType.Tcp );
+			_listener = new Socket(AddressFamily.InterNetwork,
+			    SocketType.Stream, ProtocolType.Tcp );
 
 			// Bind the socket to the local endpoint and listen for incoming connections.
 			try {
-				listener.Bind(localEndPoint);
-				listener.Listen(100);
+				_listener.Bind(localEndPoint);
+				_listener.Listen(100);
 			    CanExit.Reset();
                 while (!CanExit.WaitOne(0)) {
 					// Set the event to nonsignaled state.
@@ -61,20 +63,20 @@ namespace ServerTimeSync
 
 					// Start an asynchronous socket to listen for connections.
 					Console.WriteLine("Waiting for a connection...");
-					listener.BeginAccept( 
+					_listener.BeginAccept( 
 						new AsyncCallback(AcceptCallback),
-						listener );
+						_listener );
 
 					// Wait until a connection is made before continuing.
 					allDone.WaitOne();
 				}
-
+                
+//                _listener.Shutdown(SocketShutdown.Both);
+//                _listener.Disconnect(false);
+//                _listener.Close();
 			} catch (Exception e) {
 				Console.WriteLine(e.ToString());
 			}
-
-            listener.Shutdown(SocketShutdown.Both);
-            listener.Close();
 			Console.WriteLine("\nPress ENTER to continue...");
 			Console.Read();
 
@@ -83,7 +85,8 @@ namespace ServerTimeSync
 		public void AcceptCallback(IAsyncResult ar) {
 			// Signal the main thread to continue.
 			allDone.Set();
-            
+		    if (CanExit.WaitOne(0)) return;
+				
 			// Get the socket that handles the client request.
 			Socket listener = (Socket) ar.AsyncState;
 			Socket handler = listener.EndAccept(ar);
@@ -101,7 +104,7 @@ namespace ServerTimeSync
 		public void ReadCallback(IAsyncResult ar) {
 			String content = String.Empty;
             DateTime receiveTime = DateTime.Now;
-		    
+            if (CanExit.WaitOne(0)) return;
 			// Retrieve the state object and the handler socket
 			// from the asynchronous state object.
 			StateObject state = (StateObject) ar.AsyncState;
@@ -120,7 +123,7 @@ namespace ServerTimeSync
 //                content = state.sb.ToString();
 			    
                 if (OnReceive != null)
-                    OnReceive(this, state);
+                    OnReceive(this, (StateObject)state.Clone());
                 state.sb.Clear();
 			    
 			}
@@ -133,6 +136,7 @@ namespace ServerTimeSync
 		}
 
 		public void Send(Socket handler, String data) {
+            if (CanExit.WaitOne(0)) return;
 			// Convert the string data to byte data using ASCII encoding.
 			byte[] byteData = Encoding.ASCII.GetBytes(data);
 
@@ -142,6 +146,7 @@ namespace ServerTimeSync
 		}
 
 		private void SendCallback(IAsyncResult ar) {
+            if (CanExit.WaitOne(0)) return;
 			try {
 				// Retrieve the socket from the state object.
 				Socket handler = (Socket) ar.AsyncState;
@@ -163,8 +168,10 @@ namespace ServerTimeSync
 
         public void Dispose()
         {
+            _listener.Dispose();
             CanExit.Set();
             allDone.Set();
+            while (_listener.Connected) ;
         }
 	}
 }

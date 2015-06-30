@@ -15,11 +15,8 @@ namespace ServerTimeSync
 {
 	public class ServerConnection : ConnectionBase
 	{
-        public const uint DefaultPort = 4781;
-        
-        private AsynchronousSocketListener _asynchronousSocketListener;
+	    private AsynchronousSocketListener _asynchronousSocketListener;
 	    private Thread _serverThread;
-        private ManualResetEvent SendJob = new ManualResetEvent(false);
         private LocalTime _localTime;
         
         public EventHandler<Socket> OnConnect;
@@ -63,7 +60,7 @@ namespace ServerTimeSync
 
 	    private void OnReceiveEvent(object sender, StateObject e)
 	    {
-	        if (!TryReplyKnownProtocol(e) && OnReceive != null)
+            if (!TryReplyKnownProtocol(e) && OnReceive != null)
                 new Thread(() => OnReceive(sender, e)).Start();
 	    }
 
@@ -98,11 +95,11 @@ namespace ServerTimeSync
 	        return response.ToJSON();
 	    }
 
-	    private void OnConnectEvent(object sender, Socket e)
+	    private void OnConnectEvent(object sender, Socket socket)
 	    {
-	        RegisterSocket(e);
+	        RegisterSocket(socket);
             if(OnConnect != null)
-                new Thread(()=>OnConnect(sender,e)).Start();
+                new Thread(()=>OnConnect(sender,socket)).Start();
 	    }
 
 	    private void RegisterSocket(Socket socket)
@@ -127,7 +124,7 @@ namespace ServerTimeSync
 	        }
             catch (System.Net.Sockets.SocketException)
 	        {
-                throw new Exception("Port Alread Is Open");
+//                throw new Exception("Port Alread Is Open");
 	        }
 	        
 	    }

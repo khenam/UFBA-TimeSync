@@ -63,9 +63,9 @@ namespace ClientTimeSync
 				// Write the response to the console.
 				Console.WriteLine("Response received : {0}", response);
 
-				// Release the socket.
-				_client.Shutdown(SocketShutdown.Both);
-				_client.Close();
+                // Release the socket.
+//				_client.Shutdown(SocketShutdown.Both);
+//				_client.Close();
 
 			} catch (Exception e) {
 				Console.WriteLine(e.ToString());
@@ -73,6 +73,7 @@ namespace ClientTimeSync
 		}
 
 		private void ConnectCallback(IAsyncResult ar) {
+            if (CanExit.WaitOne(0)) return;
 			try {
 				// Retrieve the socket from the state object.
 				Socket client = (Socket) ar.AsyncState;
@@ -93,6 +94,7 @@ namespace ClientTimeSync
 		}
 
 		private void Receive() {
+            if (CanExit.WaitOne(0)) return;
 			try {
 				// Create the state object.
 				StateObject state = new StateObject();
@@ -107,6 +109,7 @@ namespace ClientTimeSync
 		}
 
 		private void ReceiveCallback( IAsyncResult ar ) {
+            if (CanExit.WaitOne(0)) return;
 			try {
                 DateTime receiveTime = DateTime.Now;
 				// Retrieve the state object and the client socket 
@@ -123,7 +126,7 @@ namespace ClientTimeSync
                     state.receiveTime = receiveTime;
 					// Get the rest of the data.
                     if (OnReceive != null)
-                        OnReceive(this, state);
+                        OnReceive(this, (StateObject)state.Clone());
 				} 
 
                 if (!CanExit.WaitOne(0, false))
@@ -136,7 +139,7 @@ namespace ClientTimeSync
 		}
 
 		public void Send(String data) {
-		    
+            if (CanExit.WaitOne(0)) return;
 		    // Convert the string data to byte data using ASCII encoding.
 			byte[] byteData = Encoding.ASCII.GetBytes(data);
 
@@ -146,6 +149,7 @@ namespace ClientTimeSync
 		}
 
 		private void SendCallback(IAsyncResult ar) {
+            if (CanExit.WaitOne(0)) return;
 			try {
 				// Retrieve the socket from the state object.
 				Socket client = (Socket) ar.AsyncState;
@@ -164,6 +168,8 @@ namespace ClientTimeSync
 
 	    public void Dispose()
 	    {
+            _client.Shutdown(SocketShutdown.Both);
+            _client.Dispose();
 	        CanExit.Set();
 	    }
 	}

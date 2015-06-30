@@ -1,23 +1,7 @@
-﻿using System;
-using System.Net.Sockets;
-using System.Text;
-using TimeSyncBase.messages;
+﻿using TimeSyncBase.messages;
 
 namespace TimeSyncBase.Connection
 {
-    public class StateObject
-    {
-        // Client  socket.
-        public Socket workSocket = null;
-        // Size of receive buffer.
-        public const int BufferSize = 1024;
-        // Receive buffer.
-        public byte[] buffer = new byte[BufferSize];
-        // Received data string.
-        public StringBuilder sb = new StringBuilder();
-        public DateTime receiveTime = DateTime.MinValue;
-    }
-
     public abstract class ConnectionBase
     {
         protected abstract void HandleCorrectResponse(StateObject so, TimeSyncMessage message);
@@ -35,5 +19,7 @@ namespace TimeSyncBase.Connection
             HandleCorrectResponse(so, message);
             return true;
         }
+
+        public const uint DefaultPort = 4781;
     }
 }

@@ -20,7 +20,6 @@ namespace TestTimeSync
 	    private const int DefaultTimeout = 5000;
 	    private const string TestString = "Test";
 	    private const string LocalHostIP = "127.0.0.1";
-	    bool exceptionWasThrown = false;
 	    private ServerConnection _server1;
 	    private ClientConnection _client1;
         private LocalTime _localTimeServer = new LocalTime();
@@ -60,28 +59,30 @@ namespace TestTimeSync
             Assert.That(clientConnected, Is.True);
         }
         [Test]
-        [Timeout(DefaultTimeout)]
+//        [Timeout(DefaultTimeout)]
         public void ValidateReceivedAndSentEvent()
         {
-            var serverReceive = false;
-            var clientReceive = false;
-            var serverSend = false;
-            var clientSend = false;
-            var clientConnected = false;
-            _client1.OnConnect += (sender, socket) => clientConnected = true;
-            _client1.OnReceive += (sender, o) => clientReceive = (o.sb.ToString() == TestString);
-            _server1.OnReceive += delegate(object sender, StateObject o) { serverReceive = (o.sb.ToString() == TestString); _server1.Send(o.workSocket, TestString); };
-            _server1.OnSend += (sender, i) => serverSend = (TestString.Length==i);
-            _client1.OnSend += (sender, i) => clientSend = (TestString.Length == i);
+            AutoResetEvent clientConnected = new AutoResetEvent(false);
+            AutoResetEvent serverReceive = new AutoResetEvent(false);
+            AutoResetEvent clientReceive = new AutoResetEvent(false);
+            AutoResetEvent serverSend = new AutoResetEvent(false);
+            AutoResetEvent clientSend = new AutoResetEvent(false);
+             
+            _client1.OnConnect += (sender, socket) => clientConnected.Set();
+            _client1.OnReceive += (sender, o) => { if (o.sb.ToString() == TestString) clientReceive.Set(); };
+            _server1.OnReceive += (sender, o) =>
+            {
+                if (o.sb.ToString() == TestString) serverReceive.Set(); _server1.Send(o.workSocket, TestString);
+            };
+            _server1.OnSend += (sender, i) => { if (TestString.Length == i) serverSend.Set(); };
+            _client1.OnSend += (sender, i) => { if (TestString.Length == i) clientSend.Set(); };
             _client1.ConnectThreaded();
-            while (!clientConnected) ;
+            Assert.That(clientConnected.WaitOne(DefaultTimeout), Is.True);
             _client1.Send(TestString);
-            while (!serverReceive || !clientReceive) ;
-            Assert.That(serverReceive, Is.True);
-            Assert.That(clientReceive, Is.True);
-            while (!serverSend || !clientSend) ;
-            Assert.That(serverSend, Is.True);
-            Assert.That(clientSend, Is.True);
+            Assert.That(serverReceive.WaitOne(DefaultTimeout), Is.True);
+            Assert.That(clientReceive.WaitOne(DefaultTimeout), Is.True);
+            Assert.That(serverSend.WaitOne(DefaultTimeout), Is.True);
+            Assert.That(clientSend.WaitOne(DefaultTimeout), Is.True);
         }
 
 	    [Test]
@@ -91,7 +92,7 @@ namespace TestTimeSync
 	        var clientTimeSincHappened = false;
 	        TimeSpan serverDifference = new TimeSpan(0, -16, 37);
 	        _localTimeServer.SetDateTime(DateTime.Now.Add(serverDifference));
-	        Assert.That(_localTimeServer.GetTimeSpan(), Is.EqualTo(serverDifference));
+			Assert.That(Math.Round(_localTimeServer.GetTimeSpan().TotalMilliseconds,0), Is.EqualTo(serverDifference.TotalMilliseconds));
 	        TimeSpan clientTimeSpan = _localTimeClient.GetTimeSpan();
 	        Assert.That(serverDifference, Is.Not.EqualTo(clientTimeSpan));
 	        _client1.OnTimeSync += (sender, dateTime) =>
@@ -107,34 +108,31 @@ namespace TestTimeSync
 	    }
 
         [Test]
-        [Timeout(DefaultTimeout)]
+//        [Timeout(DefaultTimeout)]
         public void InterpretTimeSyncConnectedClientsMessageEvent()
         {
-            ManualResetEvent ListHappen = new ManualResetEvent(false);
-            List<IPAddress> ipListReceived = new List<IPAddress>();
-            var expected = 1;
-            ListHappen.Reset();
+            AutoResetEvent ListHappen = new AutoResetEvent(false);
+            AutoResetEvent clientConnectedEvent = new AutoResetEvent(false);
+            int expected = 1;
             _client1.OnUpdateClientList += (sender, ipList) =>
             {
-                ipListReceived = ipList;
-                Assert.That(ipListReceived.Count, Is.EqualTo(expected));
+                Assert.That(ipList.Count, Is.EqualTo(expected));
+                Assert.That(string.Join(".", ipList[expected-1].GetAddressBytes().Select(a => a.ToString("d"))), Is.EqualTo(LocalHostIP));
                 ListHappen.Set();
             };
             _client1.ConnectThreaded();
             _client1.FoundNewClients();
-            ListHappen.WaitOne();
-            Assert.That(string.Join(".", ipListReceived[0].GetAddressBytes().Select(a => a.ToString("d"))), Is.EqualTo(LocalHostIP));
-
-            ListHappen.Reset();
+            Assert.That(ListHappen.WaitOne(DefaultTimeout), Is.True);
             expected = 2;
-            var clientConnected = false;
             var client2 = new ClientConnection(LocalHostIP);
-            client2.OnConnect += (sender, socket) => clientConnected = true;
+            client2.OnConnect += (sender, socket) => clientConnectedEvent.Set();
+            client2.OnUpdateClientList += _client1.OnUpdateClientList;
             client2.ConnectThreaded();
-            while (!clientConnected) ;
+            clientConnectedEvent.WaitOne();
+            client2.FoundNewClients();
+            Assert.That(ListHappen.WaitOne(DefaultTimeout), Is.True);
             _client1.FoundNewClients();
-            ListHappen.WaitOne();
-            Assert.That(string.Join(".", ipListReceived[1].GetAddressBytes().Select(a => a.ToString("d"))), Is.EqualTo(LocalHostIP));
+            Assert.That(ListHappen.WaitOne(DefaultTimeout), Is.True);
         }
 	}
 }

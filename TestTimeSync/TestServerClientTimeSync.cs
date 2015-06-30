@@ -41,22 +41,21 @@ namespace TestTimeSync
 	    [TearDown]
 	    public void TearDown()
 	    {
-            _server1.Stop();
-            _client1.Stop();
+			_client1.Stop();
+			_server1.Stop();            
 	    }
 
 	    [Test]
         [Timeout(DefaultTimeout)]
         public void ValidateConnectionEvent ()
 	    {
-	        var serverConnected = false;
-	        var clientConnected = false;
-            _server1.OnConnect += (sender, socket) => serverConnected = true;
-            _client1.OnConnect += (sender, socket) => clientConnected = true;
+			AutoResetEvent serverConnected = new AutoResetEvent(false);
+			AutoResetEvent clientConnected = new AutoResetEvent(false);
+			_server1.OnConnect += (sender, socket) => serverConnected.Set();
+			_client1.OnConnect += (sender, socket) => clientConnected.Set();
             _client1.ConnectThreaded();
-	        while (!serverConnected || !clientConnected) ;
-            Assert.That(serverConnected, Is.True);
-            Assert.That(clientConnected, Is.True);
+			Assert.That(serverConnected.WaitOne(DefaultTimeout), Is.True);
+			Assert.That(clientConnected.WaitOne(DefaultTimeout), Is.True);
         }
         [Test]
 //        [Timeout(DefaultTimeout)]
@@ -98,7 +97,7 @@ namespace TestTimeSync
 	        _client1.OnTimeSync += (sender, dateTime) =>
 	        {
 	            clientTimeSincHappened = true;
-                Assert.That(dateTime, Is.EqualTo(DateTime.Now.Add(serverDifference)));
+				Assert.That(dateTime.ToString("yyyy-MM-dd hh:mm:ss"), Is.EqualTo(DateTime.Now.Add(serverDifference).ToString("yyyy-MM-dd hh:mm:ss")));
 	        };
 
 	        _client1.ConnectThreaded();

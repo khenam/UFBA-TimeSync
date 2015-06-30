@@ -30,7 +30,6 @@ namespace ServerTimeSync
 
 	    public void StartListening(){
 			// Data buffer for incoming data.
-			byte[] bytes = new Byte[1024];
 
 			// Establish the local endpoint for the socket.
 			// The DNS name of the computer
@@ -77,8 +76,8 @@ namespace ServerTimeSync
 			} catch (Exception e) {
 				Console.WriteLine(e.ToString());
 			}
-			Console.WriteLine("\nPress ENTER to continue...");
-			Console.Read();
+			//Console.WriteLine("\nPress ENTER to continue...");
+			//Console.Read();
 
 		}
 
@@ -102,8 +101,7 @@ namespace ServerTimeSync
 		}
 
 		public void ReadCallback(IAsyncResult ar) {
-			String content = String.Empty;
-            DateTime receiveTime = DateTime.Now;
+			DateTime receiveTime = DateTime.Now;
             if (CanExit.WaitOne(0)) return;
 			// Retrieve the state object and the handler socket
 			// from the asynchronous state object.

@@ -17,7 +17,7 @@ namespace TestTimeSync
 	public class TestServerClientTimeSync
 	{
 	    private const int DefaultPort = 4781;
-	    private const int DefaultTimeout = 5000;
+	    private const int DefaultTimeout = 2000;
 	    private const string TestString = "Test";
 	    private const string LocalHostIP = "127.0.0.1";
 	    private ServerConnection _server1;

@@ -171,6 +171,7 @@ namespace ClientTimeSync
             _client.Shutdown(SocketShutdown.Both);
             _client.Dispose();
 	        CanExit.Set();
+			while (_client.Connected) ;
 	    }
 	}
 }

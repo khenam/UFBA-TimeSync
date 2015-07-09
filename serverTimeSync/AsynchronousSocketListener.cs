@@ -14,6 +14,7 @@ namespace ServerTimeSync
 		// Thread signal.
 		private ManualResetEvent allDone = new ManualResetEvent(false);
         private ManualResetEvent CanExit = new ManualResetEvent(false);
+        public event EventHandler<Socket> OnStartListen;
         public event EventHandler<Socket> OnConnect;
         public event EventHandler<StateObject> OnReceive;
         public event EventHandler<int> OnSend;
@@ -56,6 +57,8 @@ namespace ServerTimeSync
 				_listener.Bind(localEndPoint);
 				_listener.Listen(100);
 			    CanExit.Reset();
+			    if (OnStartListen != null)
+                    OnStartListen(this, _listener);
                 while (!CanExit.WaitOne(0)) {
 					// Set the event to nonsignaled state.
 					allDone.Reset();
@@ -171,5 +174,15 @@ namespace ServerTimeSync
             allDone.Set();
             while (_listener.Connected) ;
         }
-	}
+
+        public IPAddress GetIP()
+        {
+            return _ipAddress;
+        }
+
+        public uint GetPort()
+        {
+            return _port;
+        }
+    }
 }

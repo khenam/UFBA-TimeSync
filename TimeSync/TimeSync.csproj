@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -33,8 +33,27 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientNode.cs" />
+    <Compile Include="ETypeNode.cs" />
+    <Compile Include="INode.cs" />
+    <Compile Include="NodeFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerNode.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClientTimeSync\ClientTimeSync.csproj">
+      <Project>{786135FB-BCBA-4795-A410-FFEFD6FDF24F}</Project>
+      <Name>ClientTimeSync</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\serverTimeSync\ServerTimeSync.csproj">
+      <Project>{03049F90-E866-40AD-86B0-73B36ACE010F}</Project>
+      <Name>ServerTimeSync</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TimeSyncBase\TimeSyncBase.csproj">
+      <Project>{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}</Project>
+      <Name>TimeSyncBase</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

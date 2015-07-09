@@ -15,6 +15,7 @@ namespace ClientTimeSync
 	public class ClientConnection : ConnectionBase
 	{
         public EventHandler<Socket> OnConnect;
+        public EventHandler<Socket> OnDisconnect;
         public EventHandler<StateObject> OnReceive;
         public EventHandler<int> OnSend;
         public EventHandler<DateTime> OnTimeSync;
@@ -33,7 +34,7 @@ namespace ClientTimeSync
 	        _localTime = localTimeClient;
 	    }
 
-	    public ClientConnection(string hostName, LocalTime localTimeClient):this(hostName: hostName, localTimeClient: localTimeClient, port:ServerConnection.DefaultPort)
+	    public ClientConnection(string hostName, LocalTime localTimeClient):this(hostName, localTimeClient: localTimeClient, port:ServerConnection.DefaultPort)
 	    {
 	    }
 
@@ -42,24 +43,34 @@ namespace ClientTimeSync
             _asynchronousClient.OnConnect += OnConnectEvent;
             _asynchronousClient.OnReceive += OnReceiveEvent;
             _asynchronousClient.OnSend += OnSendEvent;
+	        _asynchronousClient.OnDisconnect += OnDisconnectEvent;
         }
 
+	    public IPAddress GetRemoteIpAddress()
+	    {
+	        return _asynchronousClient.remoteIP;
+	    }
         private void OnSendEvent(object sender, int BytesReceived)
         {
             if (OnSend != null)
-                new Thread(() => OnSend(sender, BytesReceived)).Start();
+                new Thread(() => OnSend(this, BytesReceived)).Start();
         }
 
         private void OnReceiveEvent(object sender, StateObject e)
         {
             if (!TryReplyKnownProtocol(e) && OnReceive != null)
-                new Thread(() => OnReceive(sender, e)).Start();
+                new Thread(() => OnReceive(this, e)).Start();
         }
 
         private void OnConnectEvent(object sender, Socket e)
         {
             if (OnConnect != null)
-                new Thread(() => OnConnect(sender, e)).Start();
+                new Thread(() => OnConnect(this, e)).Start();
+        }
+        private void OnDisconnectEvent(object sender, Socket e)
+        {
+            if (OnDisconnect != null)
+                new Thread(() => OnDisconnect(this, e)).Start();
         }
         public void Connect()
         {

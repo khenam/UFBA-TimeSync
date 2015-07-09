@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Text;
 using ServerTimeSync;
@@ -12,9 +13,10 @@ namespace ClientTimeSync
 		// The port number for the remote device.
 		public int Port { get; protected set; }
 		public IPAddress remoteIP { get; protected set;}
-	    public EventHandler<Socket> OnConnect;
-        public EventHandler<StateObject> OnReceive;
-        public EventHandler<int> OnSend;
+        public event EventHandler<Socket> OnConnect;
+        public event EventHandler<Socket> OnDisconnect;
+        public event EventHandler<StateObject> OnReceive;
+        public event EventHandler<int> OnSend;
 
 		// ManualResetEvent instances signal completion.
 		private ManualResetEvent connectDone = 
@@ -55,8 +57,11 @@ namespace ClientTimeSync
 				// Connect to the remote endpoint.
 				_client.BeginConnect( remoteEP, 
 					new AsyncCallback(ConnectCallback), _client);
-				connectDone.WaitOne();
+				
+                connectDone.WaitOne();
 
+                _client.BeginDisconnect(true, new AsyncCallback(DisconnectCallback), _client);
+               
 				Receive();
 			    CanExit.WaitOne();
 
@@ -72,7 +77,23 @@ namespace ClientTimeSync
 			}
 		}
 
-		private void ConnectCallback(IAsyncResult ar) {
+	    private void DisconnectCallback(IAsyncResult ar)
+	    {
+	        try
+	        {
+                // Retrieve the socket from the state object.
+                Socket client = (Socket)ar.AsyncState;
+
+	            if (OnDisconnect != null)
+	                OnDisconnect(this, client);
+	        }
+	        catch (Exception e)
+	        {
+	            Console.WriteLine(e.ToString());
+	        }
+	    }
+
+	    private void ConnectCallback(IAsyncResult ar) {
             if (CanExit.WaitOne(0)) return;
 			try {
 				// Retrieve the socket from the state object.

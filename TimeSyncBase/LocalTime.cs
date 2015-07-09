@@ -8,7 +8,7 @@ namespace TimeSyncBase
 
         public LocalTime()
         {
-            SetDateTime(DateTime.Now);
+            SetDateTime(DateTime.UtcNow);
         }
 
         public LocalTime(DateTime time)
@@ -18,12 +18,16 @@ namespace TimeSyncBase
 
         public DateTime GetDateTime()
         {
+            return DateTime.UtcNow.Add(_timeSpan);
+        }
+        public DateTime GetLocalDateTime()
+        {
             return DateTime.Now.Add(_timeSpan);
         }
 
         public void SetDateTime(DateTime newTime)
         {
-            _timeSpan = -DateTime.Now.Subtract(newTime);
+            _timeSpan = -DateTime.UtcNow.Subtract(newTime);
         }
 
         public TimeSpan GetTimeSpan()
@@ -38,7 +42,7 @@ namespace TimeSyncBase
 
         public object Clone()
         {
-            return new LocalTime(){_timeSpan = this._timeSpan};
+            return new LocalTime(){_timeSpan = _timeSpan};
         }
     }
 }

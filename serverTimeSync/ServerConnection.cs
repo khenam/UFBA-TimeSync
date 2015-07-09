@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Remoting.Messaging;
@@ -18,10 +19,11 @@ namespace ServerTimeSync
 	    private AsynchronousSocketListener _asynchronousSocketListener;
 	    private Thread _serverThread;
         private LocalTime _localTime;
-        
-        public EventHandler<Socket> OnConnect;
-	    public EventHandler<StateObject> OnReceive;
-	    public EventHandler<int> OnSend;
+
+        public event EventHandler<Socket> OnStartListner;
+	    public event EventHandler<Socket> OnConnect;
+	    public event EventHandler<StateObject> OnReceive;
+	    public event EventHandler<int> OnSend;
 	    private List<Socket> _socketList;
 
 	    public ServerConnection ():this(DefaultPort)
@@ -41,15 +43,22 @@ namespace ServerTimeSync
 	    {
 	    }
 
-	    private ServerConnection(uint defaultPort, IPAddress ipAddress):this(defaultPort,ipAddress,new LocalTime())
+	    public ServerConnection(uint defaultPort, IPAddress ipAddress):this(defaultPort,ipAddress,new LocalTime())
 	    {
 	    }
 
 	    private void ListnerEvents()
 	    {
+	        _asynchronousSocketListener.OnStartListen += OnStartListenEvent;
 	        _asynchronousSocketListener.OnConnect += OnConnectEvent;
 	        _asynchronousSocketListener.OnReceive += OnReceiveEvent;
 	        _asynchronousSocketListener.OnSend += OnSendEvent;
+	    }
+
+        private void OnStartListenEvent(object sender, Socket socket)
+        {
+            if (OnStartListner != null)
+                new Thread(() => OnStartListner(this, socket)).Start();
 	    }
 
 	    private void OnSendEvent(object sender, int BytesReceived)
@@ -74,16 +83,22 @@ namespace ServerTimeSync
 
 	    private string buildTimeSyncConnectedClientsResponse()
 	    {
-	        var IpsList = new List<string>();
+            var IpsList = GetConnectedIpAddresses().Select(ip => string.Join(".", ip.GetAddressBytes().Select(a => a.ToString("d"))));
+	        var Message = new TimeSyncConnectedClientsResponse();
+	        Message.ClientsIps = IpsList.ToArray();
+	        return Message.ToJSON();
+	    }
+
+	    public List<IPAddress> GetConnectedIpAddresses()
+	    {
+            var IpsList = new List<IPAddress>();
 	        foreach (Socket socket in _socketList)
 	        {
 	            IPEndPoint ipEndPoint = socket.RemoteEndPoint as IPEndPoint;
-                if (ipEndPoint != null)
-	                IpsList.Add(ipEndPoint.Address.ToString());
+	            if (ipEndPoint != null)
+	                IpsList.Add(ipEndPoint.Address);
 	        }
-            var Message = new TimeSyncConnectedClientsResponse();
-	        Message.ClientsIps = IpsList.ToArray();
-	        return Message.ToJSON();
+	        return IpsList;
 	    }
 
 	    private string buildTimeSyncResponse(TimeSyncRequest message, DateTime receiveTime)
@@ -99,7 +114,7 @@ namespace ServerTimeSync
 	    {
 	        RegisterSocket(socket);
             if(OnConnect != null)
-                new Thread(()=>OnConnect(sender,socket)).Start();
+                new Thread(()=>OnConnect(this,socket)).Start();
 	    }
 
 	    private void RegisterSocket(Socket socket)
@@ -150,6 +165,21 @@ namespace ServerTimeSync
 	            
 	    }
 
+	    public IPAddress GetIP()
+	    {
+	        return _asynchronousSocketListener.GetIP();
+	    }
+
+	    public uint GetPort()
+	    {
+	        return _asynchronousSocketListener.GetPort();
+	    }
+
+	    public DateTime GetDateTime(bool localTime = true)
+	    {
+	        var dateTime = ((LocalTime) _localTime.Clone());
+	        return localTime? dateTime.GetLocalDateTime() : dateTime.GetDateTime();
+	    }
 	}
 }
 

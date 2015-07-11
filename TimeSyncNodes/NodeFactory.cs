@@ -2,7 +2,7 @@ using System;
 
 namespace TimeSync
 {
-    internal class NodeFactory
+    public class NodeFactory
     {
         public static INode Build(ETypeNode eTypeNode, string hostNAme = "server.timesync.ufba.br")
         {

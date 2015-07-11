@@ -1,6 +1,6 @@
 namespace TimeSync
 {
-    internal enum ETypeNode
+    public enum ETypeNode
     {
         Server,
         Client

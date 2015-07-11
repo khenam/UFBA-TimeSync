@@ -4,7 +4,7 @@ using System.Net;
 
 namespace TimeSync
 {
-    internal interface INode
+    public interface INode
     {
         IPAddress IpAddress { get; set; }
         uint Port { get; set; }

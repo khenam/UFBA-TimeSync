@@ -33,26 +33,13 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientNode.cs" />
-    <Compile Include="ETypeNode.cs" />
-    <Compile Include="INode.cs" />
-    <Compile Include="NodeFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServerNode.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClientTimeSync\ClientTimeSync.csproj">
-      <Project>{786135FB-BCBA-4795-A410-FFEFD6FDF24F}</Project>
-      <Name>ClientTimeSync</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\serverTimeSync\ServerTimeSync.csproj">
-      <Project>{03049F90-E866-40AD-86B0-73B36ACE010F}</Project>
-      <Name>ServerTimeSync</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TimeSyncBase\TimeSyncBase.csproj">
-      <Project>{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}</Project>
-      <Name>TimeSyncBase</Name>
+    <ProjectReference Include="..\TimeSyncNodes\TimeSyncNodes.csproj">
+      <Project>{76f85f84-f1bc-46a0-9aa8-881d816ce328}</Project>
+      <Name>TimeSyncNodes</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

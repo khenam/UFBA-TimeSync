@@ -6,6 +6,8 @@ namespace TimeSync
 {
 	class MainClass
 	{
+	    private const string Server = "server";
+	    private const string Client = "client";
 	    private static ETypeNode nodeType;
 	    private static INode _node;
 	    private static string _hostname;
@@ -26,29 +28,15 @@ namespace TimeSync
 	        return ValidadeFirstParam(args)&&ValidadeSecondParam(args);
 	    }
 
-	    private static bool ValidadeSecondParam(string[] args)
-	    {
-	        if (args.Length > 1)
-	        {
-	            _hostname = args[1];
-	            return true;
-	        }
-                
-            Console.WriteLine("Nome do host remoto incorreto ou não informado.");
-            Console.WriteLine("Por favor digite um IP ou dominio como parametro. Ex:");
-            Console.WriteLine("TimeSync client 192.168.0.1");
-            return false;
-	    }
-
 	    private static bool ValidadeFirstParam(string[] args)
 	    {
 	        if (args.Length > 0)
 	            switch (args[0].ToLower())
 	            {
-	                case "server":
+	                case Server:
 	                    nodeType = ETypeNode.Server;
 	                    return true;
-	                case "client":
+	                case Client:
 	                    nodeType = ETypeNode.Client;
 	                    return true;
 	            }
@@ -57,7 +45,23 @@ namespace TimeSync
 	        Console.WriteLine("TimeSync client");
 	        return false;
 	    }
+        private static bool ValidadeSecondParam(string[] args)
+        {
+            if (args.Length > 1)
+            {
+                _hostname = args[1];
+                return true;
+            }
+            else if (args[0].ToLower() == Server)
+            {
+                return true;
+            }
 
+            Console.WriteLine("Nome do host remoto incorreto ou não informado.");
+            Console.WriteLine("Por favor digite um IP ou dominio como parametro. Ex:");
+            Console.WriteLine("TimeSync client 192.168.0.1");
+            return false;
+        }
 	    private static void LogScreenLoop()
 	    {
 	        do

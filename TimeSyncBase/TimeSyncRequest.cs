@@ -1,14 +1,13 @@
 ﻿using System;
-using TimeSyncBase.messages;
 
 namespace TimeSyncBase.messages.requests
 {
-	public class TimeSyncRequest : TimeSyncMessage
-	{
-		public DateTime RequestTime { get; set;}
-		public TimeSyncRequest ():base((int) ETimeSyncMessageTypes.TimeSyncRequest)
-		{
-		}
-	}
-}
+    public class TimeSyncRequest : TimeSyncMessage
+    {
+        public TimeSyncRequest() : base((int) ETimeSyncMessageTypes.TimeSyncRequest)
+        {
+        }
 
+        public DateTime RequestTime { get; set; }
+    }
+}

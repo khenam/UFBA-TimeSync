@@ -1,16 +1,15 @@
-﻿using System;
-using Gtk;
+﻿using Gtk;
 
-public partial class MainWindow: Gtk.Window
+public partial class MainWindow : Window
 {
-	public MainWindow () : base (Gtk.WindowType.Toplevel)
-	{
-		Build ();
-	}
+    public MainWindow() : base(WindowType.Toplevel)
+    {
+        Build();
+    }
 
-	protected void OnDeleteEvent (object sender, DeleteEventArgs a)
-	{
-		Application.Quit ();
-		a.RetVal = true;
-	}
+    protected void OnDeleteEvent(object sender, DeleteEventArgs a)
+    {
+        Application.Quit();
+        a.RetVal = true;
+    }
 }

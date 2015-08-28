@@ -9,14 +9,8 @@ namespace TimeSync
 {
     internal class ServerNode : INode
     {
-        protected ManualResetEvent ServerIsRunning = new ManualResetEvent(false); 
-        private ServerConnection _server;
-        private bool _isRunning;
-
-        public bool IsRunning
-        {
-            get { return _isRunning; }
-        }
+        private readonly ServerConnection _server;
+        protected ManualResetEvent ServerIsRunning = new ManualResetEvent(false);
 
         public ServerNode()
         {
@@ -36,24 +30,14 @@ namespace TimeSync
         {
             Port = port;
             IpAddress = ipAddress;
-            _server = new ServerConnection(Port,IpAddress);
+            _server = new ServerConnection(Port, IpAddress);
             InitializeComponets();
         }
 
-        private void InitializeComponets()
-        {
-            _server.OnStartListner += OnStartListnerEvent;
-        }
-
-        private void OnStartListnerEvent(object sender, Socket e)
-        {
-            _isRunning = true;
-            ServerIsRunning.Set();
-        }
-
-
+        public bool IsRunning { get; private set; }
         public IPAddress IpAddress { get; set; }
         public uint Port { get; set; }
+
         public virtual bool StartService()
         {
             _server.StartThreaded();
@@ -63,7 +47,7 @@ namespace TimeSync
         public virtual void StopService()
         {
             _server.Stop();
-            _isRunning = false;
+            IsRunning = false;
         }
 
         public virtual List<IPAddress> GetActiveConnections()
@@ -74,6 +58,17 @@ namespace TimeSync
         public DateTime GetDateTime(bool localtime = true)
         {
             return _server.GetDateTime(localtime);
+        }
+
+        private void InitializeComponets()
+        {
+            _server.OnStartListner += OnStartListnerEvent;
+        }
+
+        private void OnStartListnerEvent(object sender, Socket e)
+        {
+            IsRunning = true;
+            ServerIsRunning.Set();
         }
     }
 }

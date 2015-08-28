@@ -1,16 +1,15 @@
-﻿using System;
-using Gtk;
+﻿using Gtk;
 
 namespace TimeSyncGTK
 {
-	class MainClass
-	{
-		public static void Main (string[] args)
-		{
-			Application.Init ();
-			MainWindow win = new MainWindow ();
-			win.Show ();
-			Application.Run ();
-		}
-	}
+    internal class MainClass
+    {
+        public static void Main(string[] args)
+        {
+            Application.Init();
+            var win = new MainWindow();
+            win.Show();
+            Application.Run();
+        }
+    }
 }

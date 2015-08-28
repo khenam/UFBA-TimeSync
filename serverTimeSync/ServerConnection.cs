@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
 using System.Threading;
 using TimeSyncBase;
 using TimeSyncBase.Connection;
@@ -14,172 +12,173 @@ using TimeSyncBase.messages.responses;
 
 namespace ServerTimeSync
 {
-	public class ServerConnection : ConnectionBase
-	{
-	    private AsynchronousSocketListener _asynchronousSocketListener;
-	    private Thread _serverThread;
-        private LocalTime _localTime;
+    public class ServerConnection : ConnectionBase
+    {
+        private readonly AsynchronousSocketListener _asynchronousSocketListener;
+        private readonly LocalTime _localTime;
+        private readonly List<Socket> _socketList;
+        private Thread _serverThread;
 
-        public event EventHandler<Socket> OnStartListner;
-	    public event EventHandler<Socket> OnConnect;
-	    public event EventHandler<StateObject> OnReceive;
-	    public event EventHandler<int> OnSend;
-	    private List<Socket> _socketList;
+        public ServerConnection() : this(DefaultPort)
+        {
+        }
 
-	    public ServerConnection ():this(DefaultPort)
-		{
-		}
-
-	    public ServerConnection(uint defaultPort, IPAddress ipAddress, LocalTime localTime)
-	    {
+        public ServerConnection(uint defaultPort, IPAddress ipAddress, LocalTime localTime)
+        {
             _asynchronousSocketListener = new AsynchronousSocketListener(defaultPort, ipAddress);
-	        _localTime = localTime;
+            _localTime = localTime;
             _socketList = new List<Socket>();
             ListnerEvents();
-	    }
+        }
 
         public ServerConnection(uint defaultPort)
             : this(defaultPort, IPAddress.Parse("0.0.0.0"))
-	    {
-	    }
+        {
+        }
 
-	    public ServerConnection(uint defaultPort, IPAddress ipAddress):this(defaultPort,ipAddress,new LocalTime())
-	    {
-	    }
+        public ServerConnection(uint defaultPort, IPAddress ipAddress) : this(defaultPort, ipAddress, new LocalTime())
+        {
+        }
 
-	    private void ListnerEvents()
-	    {
-	        _asynchronousSocketListener.OnStartListen += OnStartListenEvent;
-	        _asynchronousSocketListener.OnConnect += OnConnectEvent;
-	        _asynchronousSocketListener.OnReceive += OnReceiveEvent;
-	        _asynchronousSocketListener.OnSend += OnSendEvent;
-	    }
+        public event EventHandler<Socket> OnStartListner;
+        public event EventHandler<Socket> OnConnect;
+        public event EventHandler<StateObject> OnReceive;
+        public event EventHandler<int> OnSend;
+
+        private void ListnerEvents()
+        {
+            _asynchronousSocketListener.OnStartListen += OnStartListenEvent;
+            _asynchronousSocketListener.OnConnect += OnConnectEvent;
+            _asynchronousSocketListener.OnReceive += OnReceiveEvent;
+            _asynchronousSocketListener.OnSend += OnSendEvent;
+        }
 
         private void OnStartListenEvent(object sender, Socket socket)
         {
             if (OnStartListner != null)
                 new Thread(() => OnStartListner(this, socket)).Start();
-	    }
+        }
 
-	    private void OnSendEvent(object sender, int BytesReceived)
-	    {
-            if(OnSend != null)
+        private void OnSendEvent(object sender, int BytesReceived)
+        {
+            if (OnSend != null)
                 new Thread(() => OnSend(sender, BytesReceived)).Start();
-	    }
+        }
 
-	    private void OnReceiveEvent(object sender, StateObject e)
-	    {
+        private void OnReceiveEvent(object sender, StateObject e)
+        {
             if (!TryReplyKnownProtocol(e) && OnReceive != null)
                 new Thread(() => OnReceive(sender, e)).Start();
-	    }
+        }
 
         protected override void HandleCorrectResponse(StateObject so, TimeSyncMessage message)
-	    {
-	        if (message is TimeSyncRequest)
-	            Send(so.workSocket, buildTimeSyncResponse(message as TimeSyncRequest, so.receiveTime));
-	        else if (message is TimeSyncConnectedClientsRequest)
-	            Send(so.workSocket, buildTimeSyncConnectedClientsResponse());
-	    }
+        {
+            if (message is TimeSyncRequest)
+                Send(so.workSocket, buildTimeSyncResponse(message as TimeSyncRequest, so.receiveTime));
+            else if (message is TimeSyncConnectedClientsRequest)
+                Send(so.workSocket, buildTimeSyncConnectedClientsResponse());
+        }
 
-	    private string buildTimeSyncConnectedClientsResponse()
-	    {
-            var IpsList = GetConnectedIpAddresses().Select(ip => string.Join(".", ip.GetAddressBytes().Select(a => a.ToString("d"))));
-	        var Message = new TimeSyncConnectedClientsResponse();
-	        Message.ClientsIps = IpsList.ToArray();
-	        return Message.ToJSON();
-	    }
+        private string buildTimeSyncConnectedClientsResponse()
+        {
+            var IpsList =
+                GetConnectedIpAddresses()
+                    .Select(ip => string.Join(".", ip.GetAddressBytes().Select(a => a.ToString("d"))));
+            var Message = new TimeSyncConnectedClientsResponse();
+            Message.ClientsIps = IpsList.ToArray();
+            return Message.ToJSON();
+        }
 
-	    public List<IPAddress> GetConnectedIpAddresses()
-	    {
+        public List<IPAddress> GetConnectedIpAddresses()
+        {
             var IpsList = new List<IPAddress>();
-	        foreach (Socket socket in _socketList)
-	        {
-	            IPEndPoint ipEndPoint = socket.RemoteEndPoint as IPEndPoint;
-	            if (ipEndPoint != null)
-	                IpsList.Add(ipEndPoint.Address);
-	        }
-	        return IpsList;
-	    }
+            foreach (var socket in _socketList)
+            {
+                var ipEndPoint = socket.RemoteEndPoint as IPEndPoint;
+                if (ipEndPoint != null)
+                    IpsList.Add(ipEndPoint.Address);
+            }
+            return IpsList;
+        }
 
-	    private string buildTimeSyncResponse(TimeSyncRequest message, DateTime receiveTime)
-	    {
+        private string buildTimeSyncResponse(TimeSyncRequest message, DateTime receiveTime)
+        {
             var response = new TimeSyncResponse();
-	        response.RequestTime = message.RequestTime;
+            response.RequestTime = message.RequestTime;
             response.ReceivedTime = receiveTime.Add(_localTime.GetTimeSpan());
             response.ResponseTime = _localTime.GetDateTime();
-	        return response.ToJSON();
-	    }
+            return response.ToJSON();
+        }
 
-	    private void OnConnectEvent(object sender, Socket socket)
-	    {
-	        RegisterSocket(socket);
-            if(OnConnect != null)
-                new Thread(()=>OnConnect(this,socket)).Start();
-	    }
+        private void OnConnectEvent(object sender, Socket socket)
+        {
+            RegisterSocket(socket);
+            if (OnConnect != null)
+                new Thread(() => OnConnect(this, socket)).Start();
+        }
 
-	    private void RegisterSocket(Socket socket)
-	    {
-	        _socketList.Add(socket);
-	    }
+        private void RegisterSocket(Socket socket)
+        {
+            _socketList.Add(socket);
+        }
 
-	    public void Start()
-	    {
-	        ListenerFunctionThread();
-	    }
-	    public void StartThreaded()
-	    {
-	        _serverThread = new Thread(ListenerFunctionThread);
+        public void Start()
+        {
+            ListenerFunctionThread();
+        }
+
+        public void StartThreaded()
+        {
+            _serverThread = new Thread(ListenerFunctionThread);
             _serverThread.Start();
-	    }
-	    private void ListenerFunctionThread()
-	    {
-	        try
-	        {
-                _asynchronousSocketListener.StartListening();
-	        }
-            catch (System.Net.Sockets.SocketException)
-	        {
-//                throw new Exception("Port Alread Is Open");
-	        }
-	        
-	    }
+        }
 
-	    public void Send(Socket handler, string messsage)
-	    {
+        private void ListenerFunctionThread()
+        {
+            try
+            {
+                _asynchronousSocketListener.StartListening();
+            }
+            catch (SocketException)
+            {
+//                throw new Exception("Port Alread Is Open");
+            }
+        }
+
+        public void Send(Socket handler, string messsage)
+        {
             /*
 	        var thread = new Thread(() => _asynchronousSocketListener.Send(handler, messsage));
             thread.Start();
             /*/
             _asynchronousSocketListener.Send(handler, messsage);
             //*/
-	    }
+        }
 
-	    public void Stop()
-	    {
-	        _asynchronousSocketListener.Dispose();
+        public void Stop()
+        {
+            _asynchronousSocketListener.Dispose();
             if ((_serverThread != null) && _serverThread.IsAlive)
-	        {
+            {
 //                _serverThread.Abort();
                 _serverThread.Join();
-	        }
-	            
-	    }
+            }
+        }
 
-	    public IPAddress GetIP()
-	    {
-	        return _asynchronousSocketListener.GetIP();
-	    }
+        public IPAddress GetIP()
+        {
+            return _asynchronousSocketListener.GetIP();
+        }
 
-	    public uint GetPort()
-	    {
-	        return _asynchronousSocketListener.GetPort();
-	    }
+        public uint GetPort()
+        {
+            return _asynchronousSocketListener.GetPort();
+        }
 
-	    public DateTime GetDateTime(bool localTime = true)
-	    {
-	        var dateTime = ((LocalTime) _localTime.Clone());
-	        return localTime? dateTime.GetLocalDateTime() : dateTime.GetDateTime();
-	    }
-	}
+        public DateTime GetDateTime(bool localTime = true)
+        {
+            var dateTime = ((LocalTime) _localTime.Clone());
+            return localTime ? dateTime.GetLocalDateTime() : dateTime.GetDateTime();
+        }
+    }
 }
-

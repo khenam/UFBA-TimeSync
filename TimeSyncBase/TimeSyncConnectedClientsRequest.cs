@@ -1,13 +1,10 @@
-﻿using System;
-
-namespace TimeSyncBase.messages.requests
+﻿namespace TimeSyncBase.messages.requests
 {
-	public class TimeSyncConnectedClientsRequest : TimeSyncMessage
-	{
+    public class TimeSyncConnectedClientsRequest : TimeSyncMessage
+    {
         public TimeSyncConnectedClientsRequest()
-            : base((int)ETimeSyncMessageTypes.TimeSyncConnectedClientsRequest)
-		{
-		}
-	}
+            : base((int) ETimeSyncMessageTypes.TimeSyncConnectedClientsRequest)
+        {
+        }
+    }
 }
-

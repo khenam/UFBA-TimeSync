@@ -10,13 +10,13 @@ using Timer = System.Timers.Timer;
 
 namespace TimeSync
 {
-    class ClientNode : ServerNode
+    internal class ClientNode : ServerNode
     {
         private const string RemoteServerHash = "Server";
-        private Dictionary<string,ClientConnection> _clients = new Dictionary<string,ClientConnection>();
-        private Timer _pullTimer;
-        private Timer _pullGetClients;
+        private readonly Dictionary<string, ClientConnection> _clients = new Dictionary<string, ClientConnection>();
         private readonly bool _isRunning;
+        private Timer _pullGetClients;
+        private Timer _pullTimer;
 
         public ClientNode(string hostName)
         {
@@ -34,14 +34,17 @@ namespace TimeSync
         {
             InitializeClient(hostName);
         }
+
+        public int DefaultTimeOut { get; private set; }
+
         private void InitializeClient(string hostName)
         {
             DefaultTimeOut = 60*1000;
             AddNewItensInList(GetIpAddressFromHostName(hostName), RemoteServerHash);
             TryRegisterRemoteServerHostEvents();
-            _pullTimer = new System.Timers.Timer(30 * 1000);
+            _pullTimer = new Timer(30*1000);
             _pullTimer.Elapsed += SendSyncMessage;
-            _pullGetClients = new System.Timers.Timer(60 * 1000);
+            _pullGetClients = new Timer(60*1000);
             _pullGetClients.Elapsed += SendGetClientsMessage;
         }
 
@@ -56,7 +59,7 @@ namespace TimeSync
             IPAddress ip;
             if (!IPAddress.TryParse(hostName, out ip))
             {
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
+                var ipHostInfo = Dns.GetHostEntry(hostName);
                 ip = ipHostInfo.AddressList[0];
             }
             return ip;
@@ -72,8 +75,8 @@ namespace TimeSync
 
         public void AddNewItensInList(IPAddress ipAddress, string keyName = null)
         {
-            
-            if (!IsLocalIpAddress(ipAddress.ToString()) && _clients.All((client) => !Equals(client.Value.GetRemoteIpAddress(), ipAddress)))
+            if (!IsLocalIpAddress(ipAddress.ToString()) &&
+                _clients.All(client => !Equals(client.Value.GetRemoteIpAddress(), ipAddress)))
             {
                 var key = keyName ?? ipAddress.GetAddressBytes().ToString();
                 var clientConnection = new ClientConnection(ipAddress.ToString());
@@ -81,7 +84,6 @@ namespace TimeSync
                 _clients[key].OnDisconnect += OnDisconnectRemoveFromList;
                 TryConnectNewAddress(key);
             }
-            
         }
 
         private void TryConnectNewAddress(string keyName)
@@ -98,7 +100,7 @@ namespace TimeSync
         private void OnDisconnectRemoveFromList(object sender, Socket e)
         {
             if (_clients.ContainsKey(_clients.First(item => item.Value.Equals(sender)).Key))
-                _clients.Remove(_clients.First(item => item.Value.Equals(sender)).Key);    
+                _clients.Remove(_clients.First(item => item.Value.Equals(sender)).Key);
         }
 
         private void SendGetClientsMessage(object sender, ElapsedEventArgs e)
@@ -130,8 +132,6 @@ namespace TimeSync
             }
         }
 
-        public int DefaultTimeOut { get; private set; }
-
         public override void StopService()
         {
             base.StopService();
@@ -140,7 +140,7 @@ namespace TimeSync
 
         public override List<IPAddress> GetActiveConnections()
         {
-            return _clients.Values.Select((con) => con.GetRemoteIpAddress()).ToList();
+            return _clients.Values.Select(con => con.GetRemoteIpAddress()).ToList();
         }
 
         private void StopClients()
@@ -154,24 +154,27 @@ namespace TimeSync
         protected bool IsLocalIpAddress(string host)
         {
             try
-            { // get host IP addresses
-                IPAddress[] hostIPs = Dns.GetHostAddresses(host);
+            {
+                // get host IP addresses
+                var hostIPs = Dns.GetHostAddresses(host);
                 // get local IP addresses
-                IPAddress[] localIPs = Dns.GetHostAddresses(Dns.GetHostName());
+                var localIPs = Dns.GetHostAddresses(Dns.GetHostName());
 
                 // test if any host IP equals to any local IP or to localhost
-                foreach (IPAddress hostIP in hostIPs)
+                foreach (var hostIP in hostIPs)
                 {
                     // is localhost
                     if (IPAddress.IsLoopback(hostIP)) return true;
                     // is local address
-                    foreach (IPAddress localIP in localIPs)
+                    foreach (var localIP in localIPs)
                     {
                         if (hostIP.Equals(localIP)) return true;
                     }
                 }
             }
-            catch { }
+            catch
+            {
+            }
             return false;
         }
     }

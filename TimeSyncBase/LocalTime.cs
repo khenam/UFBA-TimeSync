@@ -16,10 +16,16 @@ namespace TimeSyncBase
             SetDateTime(time);
         }
 
+        public object Clone()
+        {
+            return new LocalTime {_timeSpan = _timeSpan};
+        }
+
         public DateTime GetDateTime()
         {
             return DateTime.UtcNow.Add(_timeSpan);
         }
+
         public DateTime GetLocalDateTime()
         {
             return DateTime.Now.Add(_timeSpan);
@@ -38,11 +44,6 @@ namespace TimeSyncBase
         public void SetTimeSpan(TimeSpan timeSpan)
         {
             _timeSpan = timeSpan;
-        }
-
-        public object Clone()
-        {
-            return new LocalTime(){_timeSpan = _timeSpan};
         }
     }
 }

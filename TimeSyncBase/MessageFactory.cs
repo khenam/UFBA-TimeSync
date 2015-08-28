@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using Newtonsoft.Json;
 using TimeSyncBase.messages;
 using TimeSyncBase.messages.requests;
@@ -14,7 +13,7 @@ namespace TimeSyncBase
             try
             {
                 dynamic json = JsonConvert.DeserializeObject(message);
-                switch ((ETimeSyncMessageTypes)json.IdMessage)
+                switch ((ETimeSyncMessageTypes) json.IdMessage)
                 {
                     case ETimeSyncMessageTypes.TimeSyncRequest:
                         return JsonConvert.DeserializeObject<TimeSyncRequest>(message);

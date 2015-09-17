@@ -1,17 +1,24 @@
 ﻿<Properties StartupItem="TimeSync/TimeSync.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="ClientTimeSync/AsynchronousClient.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="TimeSyncNodes/ETypeNode.cs">
     <Files>
-      <File FileName="TimeSyncBase/TimeSyncRequest.cs" Line="9" Column="30" />
-      <File FileName="TimeSyncBase/TimeSyncResponse.cs" Line="10" Column="31" />
-      <File FileName="TimeSyncBase/TimeSyncConnectedClientsRequest.cs" Line="7" Column="29" />
-      <File FileName="TimeSyncBase/TimeSyncConnectedClientsResponse.cs" Line="8" Column="29" />
-      <File FileName="TimeSyncBase/TimeSyncMessage.cs" Line="13" Column="2" />
       <File FileName="TimeSyncBase/packages.config" Line="1" Column="1" />
-      <File FileName="TestTimeSync/TestServerTimeSync.cs" Line="1" Column="1" />
       <File FileName="ClientTimeSync/ClientConnection.cs" Line="1" Column="1" />
-      <File FileName="ClientTimeSync/AsynchronousClient.cs" Line="179" Column="25" />
-      <File FileName="serverTimeSync/AsynchronousSocketListener.cs" Line="93" Column="4" />
+      <File FileName="ClientTimeSync/AsynchronousClient.cs" Line="1" Column="1" />
+      <File FileName="serverTimeSync/AsynchronousSocketListener.cs" Line="1" Column="1" />
+      <File FileName="TimeSync/Program.cs" Line="1" Column="1" />
+      <File FileName="TestTimeSync/TestCalcTimeSync.cs" Line="1" Column="1" />
+      <File FileName="TestTimeSync/TestServerClientTimeSync.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncNodes/ClientNode.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncNodes/ServerNode.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncNodes/INode.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncBase/Calculator.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncBase/LocalTime.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncBase/messages/MessageFactory.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncBase/messages/TimeSyncMessage.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncBase/Properties/AssemblyInfo.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncNodes/NodeFactory.cs" Line="1" Column="1" />
+      <File FileName="TimeSyncNodes/ETypeNode.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

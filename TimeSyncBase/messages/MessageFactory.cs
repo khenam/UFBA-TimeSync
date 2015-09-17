@@ -4,7 +4,7 @@ using TimeSyncBase.messages;
 using TimeSyncBase.messages.requests;
 using TimeSyncBase.messages.responses;
 
-namespace TimeSyncBase
+namespace TimeSyncBase.messages
 {
     public class MessageFactory
     {

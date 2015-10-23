@@ -1,8 +1,9 @@
-﻿namespace TimeSyncBase.messages.responses
+﻿using TimeSyncBase;
+namespace TimeSyncBase.messages.responses
 {
     public class TimeSyncConnectedClientsResponse : TimeSyncMessage
     {
-        public string[] ClientsIps;
+        public NodeReference[] ClientsIps;
 
         public TimeSyncConnectedClientsResponse()
             : base((int) ETimeSyncMessageTypes.TimeSyncConnectedClientsResponse)

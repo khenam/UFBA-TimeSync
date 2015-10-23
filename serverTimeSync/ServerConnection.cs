@@ -18,6 +18,7 @@ namespace ServerTimeSync
         private readonly LocalTime _localTime;
         private readonly List<Socket> _socketList;
         private Thread _serverThread;
+        private List<NodeReference> _listIpPort = new List<NodeReference>(); 
 
         public ServerConnection() : this(DefaultPort)
         {
@@ -73,19 +74,58 @@ namespace ServerTimeSync
 
         protected override void HandleCorrectResponse(StateObject so, TimeSyncMessage message)
         {
-            if (message is TimeSyncRequest)
+            if (message is TimeSyncConnectRequest)
+                Send(so.workSocket, buildTimeSyncConnectResponse(message as TimeSyncConnectRequest, so));
+            else if (message is TimeSyncRequest)
                 Send(so.workSocket, buildTimeSyncResponse(message as TimeSyncRequest, so.receiveTime));
             else if (message is TimeSyncConnectedClientsRequest)
                 Send(so.workSocket, buildTimeSyncConnectedClientsResponse());
+        }
+
+        private string buildTimeSyncConnectResponse(TimeSyncConnectRequest message, StateObject so)
+        {
+            updateIPPortList(((IPEndPoint) so.workSocket.RemoteEndPoint).Address, message.NewConnectionPort);
+            var response = new TimeSyncConnectResponse();
+            response.ReturnCode = 0;
+            return response.ToJSON();
+        }
+
+        private void updateIPPortList(IPAddress address, uint port)
+        {
+            var nodeReference = new NodeReference()
+            {
+                IpAddress = ConvertIPAddressToStringIp(address),
+                Port = port
+            };
+            if (_listIpPort.Contains(nodeReference))
+                return;
+            _listIpPort.Add(nodeReference);
+        }
+
+        private static string ConvertIPAddressToStringIp(IPAddress address)
+        {
+            return string.Join(".", address.GetAddressBytes().Select(a => a.ToString("d")));
         }
 
         private string buildTimeSyncConnectedClientsResponse()
         {
             var IpsList =
                 GetConnectedIpAddresses()
-                    .Select(ip => string.Join(".", ip.GetAddressBytes().Select(a => a.ToString("d"))));
+                    .Select(ConvertIPAddressToStringIp);
             var Message = new TimeSyncConnectedClientsResponse();
-            Message.ClientsIps = IpsList.ToArray();
+            var bufferList = new List<NodeReference>();
+            foreach (var ip in IpsList)
+            {
+                if ( _listIpPort.Exists( node => node.IpAddress == ip) )
+                    continue;
+                bufferList.Add( new NodeReference()
+                    {
+                        IpAddress =  ip,
+                        Port = DefaultPort
+                    }
+                );
+            }
+            Message.ClientsIps = bufferList.ToArray();
             return Message.ToJSON();
         }
 

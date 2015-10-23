@@ -2,14 +2,6 @@
 
 namespace TimeSyncBase.messages
 {
-    public enum ETimeSyncMessageTypes
-    {
-        TimeSyncRequest = 1,
-        TimeSyncResponse,
-        TimeSyncConnectedClientsRequest,
-        TimeSyncConnectedClientsResponse
-    }
-
     public abstract class TimeSyncMessage
     {
         private readonly int _idMesnagem;

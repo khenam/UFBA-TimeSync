@@ -15,6 +15,10 @@ namespace TimeSyncBase.messages
                 dynamic json = JsonConvert.DeserializeObject(message);
                 switch ((ETimeSyncMessageTypes) json.IdMessage)
                 {
+                    case ETimeSyncMessageTypes.TimeSyncConnectRequest:
+                        return JsonConvert.DeserializeObject<TimeSyncConnectRequest>(message);
+                    case ETimeSyncMessageTypes.TimeSyncConnectResponse:
+                        return JsonConvert.DeserializeObject<TimeSyncConnectResponse>(message);
                     case ETimeSyncMessageTypes.TimeSyncRequest:
                         return JsonConvert.DeserializeObject<TimeSyncRequest>(message);
                     case ETimeSyncMessageTypes.TimeSyncResponse:

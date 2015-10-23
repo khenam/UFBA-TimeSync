@@ -140,7 +140,7 @@ namespace ClientTimeSync
             foreach (var clientsIp in timeSyncConnectedClientsResponse.ClientsIps)
             {
                 IPAddress bufferIp;
-                if (IPAddress.TryParse(clientsIp, out bufferIp))
+                if (IPAddress.TryParse(clientsIp.IpAddress, out bufferIp))
                     ipList.Add(bufferIp);
             }
 

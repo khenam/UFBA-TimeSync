@@ -22,7 +22,7 @@ namespace TestTimeSync
         {
             _server1 = new ServerConnection(DefaultPort, IPAddress.Parse("0.0.0.0"), _localTimeServer);
             _server1.StartThreaded();
-            _client1 = new ClientConnection(LocalHostIP, _localTimeClient);
+            _client1 = new ClientConnection(LocalHostIP, PortClient1, _localTimeClient);
         }
 
         [TearDown]
@@ -33,6 +33,8 @@ namespace TestTimeSync
         }
 
         private const int DefaultPort = 4781;
+        private const int PortClient1 = 4782;
+        private const int PortClient2 = 4783;
         private const int DefaultTimeout = 2000;
         private const string TestString = "Test";
         private const string LocalHostIP = "127.0.0.1";
@@ -59,7 +61,7 @@ namespace TestTimeSync
             _client1.FoundNewClients();
             Assert.That(ListHappen.WaitOne(DefaultTimeout), Is.True);
             expected = 2;
-            var client2 = new ClientConnection(LocalHostIP);
+            var client2 = new ClientConnection(LocalHostIP, PortClient2);
             client2.OnConnect += (sender, socket) => clientConnectedEvent.Set();
             client2.OnUpdateClientList += _client1.OnUpdateClientList;
             client2.ConnectThreaded();

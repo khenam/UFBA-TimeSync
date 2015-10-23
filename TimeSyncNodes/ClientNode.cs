@@ -32,15 +32,18 @@ namespace TimeSync
         public ClientNode(uint serverPort, IPAddress serverIpAddress, string hostName)
             : base(serverPort, serverIpAddress)
         {
-            InitializeClient(hostName);
+            InitializeClient(hostName, true);
         }
 
         public int DefaultTimeOut { get; private set; }
 
-        private void InitializeClient(string hostName)
+        private void InitializeClient(string hostName, bool checkServerPort = false)
         {
             DefaultTimeOut = 60*1000;
-            AddNewItensInList(GetIpAddressFromHostName(hostName), RemoteServerHash);
+            if (checkServerPort)
+                AddNewItensInList(GetIpAddressFromHostName(hostName), RemoteServerHash);
+            else
+                AddNewItensInList(GetIpAddressFromHostName(hostName), RemoteServerHash);
             TryRegisterRemoteServerHostEvents();
             _pullTimer = new Timer(30*1000);
             _pullTimer.Elapsed += SendSyncMessage;
@@ -153,6 +156,7 @@ namespace TimeSync
 
         protected bool IsLocalIpAddress(string host)
         {
+            return false;
             try
             {
                 // get host IP addresses

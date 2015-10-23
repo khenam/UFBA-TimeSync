@@ -33,7 +33,7 @@ namespace TimeSyncBase
 
         public void SetDateTime(DateTime newTime)
         {
-            _timeSpan = -DateTime.UtcNow.Subtract(newTime);
+            _timeSpan = -DateTime.UtcNow.Subtract(newTime.ToUniversalTime());
         }
 
         public TimeSpan GetTimeSpan()

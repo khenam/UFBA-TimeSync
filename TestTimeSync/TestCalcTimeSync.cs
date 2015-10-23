@@ -8,11 +8,11 @@ namespace TestTimeSync
     [TestFixture]
     public class TestCalcTimeSync
     {
-        private DateTime _localSendTime = DateTime.Now;
+        private readonly DateTime _localSendTime = DateTime.Now;
         private readonly TimeSpan _oneSecond = new TimeSpan(0, 0, 1);
         private readonly TimeSpan _twoSeconds = new TimeSpan(0, 0, 2);
         private readonly TimeSpan _4Seconds = new TimeSpan(0, 0, 4);
-        private TimeSpan _5Seconds = new TimeSpan(0, 0, 5);
+        private readonly TimeSpan _5Seconds = new TimeSpan(0, 0, 5);
 
         [Test]
         public void CalcOneSecondTimeStamp()
@@ -61,7 +61,7 @@ namespace TestTimeSync
                 Is.EqualTo(_5Seconds.TotalMilliseconds));
             Thread.Sleep(1000);
             Assert.That(localTime.GetDateTime().ToString("yyyy-MM-dd hh:mm:ss"),
-                Is.EqualTo(DateTime.Now.Add(_5Seconds).ToString("yyyy-MM-dd hh:mm:ss")));
+                Is.EqualTo(DateTime.UtcNow.Add(_5Seconds).ToString("yyyy-MM-dd hh:mm:ss")));
         }
     }
 }

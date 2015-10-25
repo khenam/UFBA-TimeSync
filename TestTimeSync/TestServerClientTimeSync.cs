@@ -34,7 +34,7 @@ namespace TestTimeSync
         }
 
         private const int DefaultPort = 4781;
-        private const int DefaultTimeout = 5000;
+        private const int DefaultTimeout = 2000;
         private const string TestString = "Test";
         private const string LocalHostIP = "127.0.0.1";
         private ServerConnection _server1;
@@ -53,7 +53,7 @@ namespace TestTimeSync
             _client1.OnUpdateClientList += (sender, ipList) =>
             {
                 Assert.That(ipList.Count, Is.EqualTo(expected));
-                Assert.That(string.Join(".", ipList[expected - 1].GetAddressBytes().Select(a => a.ToString("d"))),
+                Assert.That(string.Join(".", ipList[expected - 1].IpAddress),
                     Is.EqualTo(LocalHostIP));
                 ListHappen.Set();
             };

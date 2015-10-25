@@ -6,21 +6,30 @@ using System.Threading;
 using System.Timers;
 using ClientTimeSync;
 using ServerTimeSync;
+using TimeSync;
+using TimeSyncBase;
 using Timer = System.Timers.Timer;
 
-namespace TimeSync
+namespace TimeSyncNodes
 {
-    internal class ClientNode : ServerNode
+    public class ClientNode : ServerNode
     {
         private const string RemoteServerHash = "Server";
         private readonly Dictionary<string, ClientConnection> _clients = new Dictionary<string, ClientConnection>();
-        private readonly bool _isRunning;
+//        private bool _isRunning;
         private Timer _pullGetClients;
         private Timer _pullTimer;
+        private uint _lowerPullSyncInterval = 100;
+        private uint _lowerPullSyncClientsInterval = 1000;
 
         public ClientNode(string hostName)
         {
             InitializeClient(hostName);
+        }
+
+        public ClientNode(string hostName, uint port)
+        {
+            InitializeClient(hostName, true, port);
         }
 
         public ClientNode(ServerConnection server, string hostName)
@@ -37,13 +46,13 @@ namespace TimeSync
 
         public int DefaultTimeOut { get; private set; }
 
-        private void InitializeClient(string hostName, bool checkServerPort = false)
+        private void InitializeClient(string hostName, bool checkServerPort = false, uint? port = null)
         {
             DefaultTimeOut = 60*1000;
             if (checkServerPort)
-                AddNewItensInList(GetIpAddressFromHostName(hostName), RemoteServerHash);
+                AddNewItensInList(GetIpAddressFromHostName(hostName), port, RemoteServerHash);
             else
-                AddNewItensInList(GetIpAddressFromHostName(hostName), RemoteServerHash);
+                AddNewItensInList(GetIpAddressFromHostName(hostName), null, RemoteServerHash);
             TryRegisterRemoteServerHostEvents();
             _pullTimer = new Timer(30*1000);
             _pullTimer.Elapsed += SendSyncMessage;
@@ -68,21 +77,23 @@ namespace TimeSync
             return ip;
         }
 
-        private void UpdateClientList(object sender, List<IPAddress> ipAddresses)
+        private void UpdateClientList(object sender, List<NodeReference> ipAddresses)
         {
             foreach (var address in ipAddresses)
             {
-                AddNewItensInList(address);
+                IPAddress bufferIp;
+                if (IPAddress.TryParse(address.IpAddress, out bufferIp))
+                    AddNewItensInList(bufferIp, Port);
             }
         }
 
-        public void AddNewItensInList(IPAddress ipAddress, string keyName = null)
+        public void AddNewItensInList(IPAddress ipAddress, uint? port = null, string keyName = null)
         {
-            if (!IsLocalIpAddress(ipAddress.ToString()) &&
-                _clients.All(client => !Equals(client.Value.GetRemoteIpAddress(), ipAddress)))
+            if (!IsLocalIpAddress(ipAddress.ToString(), port) &&
+                _clients.All(client => !(Equals(client.Value.GetRemoteIpAddress(), ipAddress) && Equals(client.Value.GetRemotePort(), port.HasValue ? port.Value : client.Value.GetRemotePort()))))
             {
                 var key = keyName ?? ipAddress.GetAddressBytes().ToString();
-                var clientConnection = new ClientConnection(ipAddress.ToString());
+                var clientConnection = port.HasValue ? new ClientConnection(ipAddress.ToString(),port.Value) : new ClientConnection(ipAddress.ToString());
                 _clients.Add(key, clientConnection);
                 _clients[key].OnDisconnect += OnDisconnectRemoveFromList;
                 TryConnectNewAddress(key);
@@ -146,6 +157,12 @@ namespace TimeSync
             return _clients.Values.Select(con => con.GetRemoteIpAddress()).ToList();
         }
 
+        public List<NodeReference> GetActiveConnectionsNodes()
+        {
+            return _clients.Values.Select(con => new NodeReference() { IpAddress = con.GetRemoteIpAddress().ToString(), Port = con.GetRemotePort() }).ToList();
+        }
+
+
         private void StopClients()
         {
             foreach (var client in _clients)
@@ -154,9 +171,9 @@ namespace TimeSync
             }
         }
 
-        protected bool IsLocalIpAddress(string host)
+        protected bool IsLocalIpAddress(string host, uint? port = null)
         {
-            return false;
+//            return false;
             try
             {
                 // get host IP addresses
@@ -165,21 +182,42 @@ namespace TimeSync
                 var localIPs = Dns.GetHostAddresses(Dns.GetHostName());
 
                 // test if any host IP equals to any local IP or to localhost
-                foreach (var hostIP in hostIPs)
+                foreach (var hostIp in hostIPs)
                 {
                     // is localhost
-                    if (IPAddress.IsLoopback(hostIP)) return true;
+                    if (IPAddress.IsLoopback(hostIp) && Port == (port.HasValue? port.Value : Port)) return true;
                     // is local address
-                    foreach (var localIP in localIPs)
+                    foreach (var localIp in localIPs)
                     {
-                        if (hostIP.Equals(localIP)) return true;
+                        if (hostIp.Equals(localIp) && Port == (port.HasValue ? port.Value : Port)) return true;
                     }
                 }
             }
             catch
             {
+                // ignored
             }
             return false;
+        }
+
+        public void SetPullSyncTime(uint interval)
+        {
+            _pullTimer.Interval = interval > _lowerPullSyncInterval ? interval : _lowerPullSyncInterval;
+        }
+
+        public uint GetPullSyncTime()
+        {
+            return (uint) _pullTimer.Interval;
+        }
+
+        public void SetPullSyncClients(uint interval)
+        {
+            _pullGetClients.Interval = interval > _lowerPullSyncClientsInterval ? interval : _lowerPullSyncClientsInterval;
+        }
+
+        public uint GetPullSyncClients()
+        {
+            return (uint) _pullGetClients.Interval;
         }
     }
 }

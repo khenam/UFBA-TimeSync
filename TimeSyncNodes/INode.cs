@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using TimeSyncBase;
 
 namespace TimeSync
 {
@@ -12,6 +13,8 @@ namespace TimeSync
         bool StartService();
         void StopService();
         List<IPAddress> GetActiveConnections();
+        List<NodeReference> GetActiveConnectionsNodes();
+        
         DateTime GetDateTime(bool localtime = true);
     }
 }

@@ -15,15 +15,15 @@ namespace ClientTimeSync
     {
         private readonly AsynchronousClient _asynchronousClient;
         private readonly LocalTime _localTime;
-        private Thread _ClientThread;
+        private Thread _clientThread;
         public EventHandler<Socket> OnConnect;
         public EventHandler<Socket> OnDisconnect;
         public EventHandler<StateObject> OnReceive;
         public EventHandler<int> OnSend;
         public EventHandler<DateTime> OnTimeSync;
-        public EventHandler<List<IPAddress>> OnUpdateClientList;
+        public EventHandler<List<NodeReference>> OnUpdateClientList;
 
-        public bool isConnected { get; private set; }
+        public bool IsConnected { get; private set; }
 
         public ClientConnection(string hostName, uint port = DefaultPort) : this(hostName, port, new LocalTime())
         {
@@ -53,11 +53,15 @@ namespace ClientTimeSync
         {
             return _asynchronousClient.remoteIP;
         }
+        public uint GetRemotePort()
+        {
+            return (uint) _asynchronousClient.Port;
+        }
 
-        private void OnSendEvent(object sender, int BytesReceived)
+        private void OnSendEvent(object sender, int bytesReceived)
         {
             if (OnSend != null)
-                new Thread(() => OnSend(this, BytesReceived)).Start();
+                new Thread(() => OnSend(this, bytesReceived)).Start();
         }
 
         private void OnReceiveEvent(object sender, StateObject e)
@@ -68,7 +72,7 @@ namespace ClientTimeSync
 
         private void OnConnectEvent(object sender, Socket e)
         {
-            isConnected = true;
+            IsConnected = true;
             if (OnConnect != null)
                 new Thread(() => OnConnect(this, e)).Start();
 
@@ -76,7 +80,7 @@ namespace ClientTimeSync
 
         private void OnDisconnectEvent(object sender, Socket e)
         {
-            isConnected = false;
+            IsConnected = false;
             if (OnDisconnect != null)
                 new Thread(() => OnDisconnect(this, e)).Start();
         }
@@ -88,8 +92,8 @@ namespace ClientTimeSync
 
         public void ConnectThreaded()
         {
-            _ClientThread = new Thread(ConnectFunctionThread);
-            _ClientThread.Start();
+            _clientThread = new Thread(ConnectFunctionThread);
+            _clientThread.Start();
         }
 
         private void ConnectFunctionThread()
@@ -112,10 +116,10 @@ namespace ClientTimeSync
         public void Stop()
         {
             _asynchronousClient.Dispose();
-            if ((_ClientThread != null) && _ClientThread.IsAlive)
+            if ((_clientThread != null) && _clientThread.IsAlive)
             {
 //	            _ClientThread.Abort();
-                _ClientThread.Join();
+                _clientThread.Join();
             }
         }
 
@@ -139,24 +143,28 @@ namespace ClientTimeSync
                 UpdateClientsConnected(message as TimeSyncConnectedClientsResponse);
         }
 
-        private void UpdateClientsConnected(TimeSyncConnectedClientsResponse timeSyncConnectedClientsResponse)
+        private void UpdateClientsConnected(TimeSyncConnectedClientsResponse message)
         {
-            var ipList = new List<IPAddress>();
-            foreach (var clientsIp in timeSyncConnectedClientsResponse.ClientsIps)
+            var ipList = new List<NodeReference>();
+            foreach (var clientsIp in message.ClientsIps)
             {
-                IPAddress bufferIp;
-                if (IPAddress.TryParse(clientsIp.IpAddress, out bufferIp))
-                    ipList.Add(bufferIp);
+//                IPAddress bufferIp;
+//                if (IPAddress.TryParse(clientsIp.IpAddress, out bufferIp))
+                    ipList.Add(new NodeReference()
+                    {
+                        IpAddress = clientsIp.IpAddress,
+                        Port = clientsIp.Port
+                    });
             }
 
             if (OnUpdateClientList != null)
                 new Thread(() => OnUpdateClientList(this, ipList)).Start();
         }
 
-        private void UpdateLocalTime(TimeSyncResponse timeSyncResponse, DateTime receiveTime)
+        private void UpdateLocalTime(TimeSyncResponse message, DateTime receiveTime)
         {
-            var remoteHour = Calculator.PullTimeSyncCalc(timeSyncResponse.RequestTime, timeSyncResponse.ReceivedTime,
-                timeSyncResponse.ResponseTime, receiveTime);
+            var remoteHour = Calculator.PullTimeSyncCalc(message.RequestTime, message.ReceivedTime,
+                message.ResponseTime, receiveTime);
 
             _localTime.SetTimeSpan(-receiveTime.Subtract(remoteHour));
 
@@ -166,7 +174,7 @@ namespace ClientTimeSync
 
         public void FoundNewClients()
         {
-            if (isConnected)
+            if (IsConnected)
                 _asynchronousClient.Send((new TimeSyncConnectedClientsRequest()).ToJSON());
         }
     }

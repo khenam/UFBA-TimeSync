@@ -220,5 +220,10 @@ namespace ServerTimeSync
             var dateTime = ((LocalTime) _localTime.Clone());
             return localTime ? dateTime.GetLocalDateTime() : dateTime.GetDateTime();
         }
+
+        public List<NodeReference> GetConnectedNodes()
+        {
+            return new List<NodeReference>(_listIpPort);
+        }
     }
 }

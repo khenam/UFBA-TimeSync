@@ -113,7 +113,7 @@ namespace ServerTimeSync
                 GetConnectedIpAddresses()
                     .Select(ConvertIPAddressToStringIp);
             var Message = new TimeSyncConnectedClientsResponse();
-            var bufferList = new List<NodeReference>();
+            var bufferList = new List<NodeReference>(_listIpPort);
             foreach (var ip in IpsList)
             {
                 if ( _listIpPort.Exists( node => node.IpAddress == ip) )

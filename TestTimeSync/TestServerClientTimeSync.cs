@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Runtime.Remoting.Channels;
 using System.Threading;
 using ClientTimeSync;
 using NUnit.Framework;
@@ -22,7 +23,7 @@ namespace TestTimeSync
         {
             _server1 = new ServerConnection(DefaultPort, IPAddress.Parse("0.0.0.0"), _localTimeServer);
             _server1.StartThreaded();
-            _client1 = new ClientConnection(LocalHostIP, PortClient1, _localTimeClient);
+            _client1 = new ClientConnection(LocalHostIP, _localTimeClient);
         }
 
         [TearDown]
@@ -33,9 +34,7 @@ namespace TestTimeSync
         }
 
         private const int DefaultPort = 4781;
-        private const int PortClient1 = 4782;
-        private const int PortClient2 = 4783;
-        private const int DefaultTimeout = 2000;
+        private const int DefaultTimeout = 5000;
         private const string TestString = "Test";
         private const string LocalHostIP = "127.0.0.1";
         private ServerConnection _server1;
@@ -50,6 +49,7 @@ namespace TestTimeSync
             var ListHappen = new AutoResetEvent(false);
             var clientConnectedEvent = new AutoResetEvent(false);
             var expected = 1;
+            _client1.OnConnect += (sender,sock) => clientConnectedEvent.Set();
             _client1.OnUpdateClientList += (sender, ipList) =>
             {
                 Assert.That(ipList.Count, Is.EqualTo(expected));
@@ -58,14 +58,15 @@ namespace TestTimeSync
                 ListHappen.Set();
             };
             _client1.ConnectThreaded();
+            Assert.That(clientConnectedEvent.WaitOne(DefaultTimeout),Is.True);
             _client1.FoundNewClients();
             Assert.That(ListHappen.WaitOne(DefaultTimeout), Is.True);
             expected = 2;
-            var client2 = new ClientConnection(LocalHostIP, PortClient2);
+            var client2 = new ClientConnection(LocalHostIP);
             client2.OnConnect += (sender, socket) => clientConnectedEvent.Set();
             client2.OnUpdateClientList += _client1.OnUpdateClientList;
             client2.ConnectThreaded();
-            clientConnectedEvent.WaitOne();
+            Assert.That(clientConnectedEvent.WaitOne(DefaultTimeout), Is.True);
             client2.FoundNewClients();
             Assert.That(ListHappen.WaitOne(DefaultTimeout), Is.True);
             _client1.FoundNewClients();

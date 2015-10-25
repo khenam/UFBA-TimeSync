@@ -23,6 +23,8 @@ namespace ClientTimeSync
         public EventHandler<DateTime> OnTimeSync;
         public EventHandler<List<IPAddress>> OnUpdateClientList;
 
+        public bool isConnected { get; private set; }
+
         public ClientConnection(string hostName, uint port = DefaultPort) : this(hostName, port, new LocalTime())
         {
         }
@@ -66,12 +68,15 @@ namespace ClientTimeSync
 
         private void OnConnectEvent(object sender, Socket e)
         {
+            isConnected = true;
             if (OnConnect != null)
                 new Thread(() => OnConnect(this, e)).Start();
+
         }
 
         private void OnDisconnectEvent(object sender, Socket e)
         {
+            isConnected = false;
             if (OnDisconnect != null)
                 new Thread(() => OnDisconnect(this, e)).Start();
         }
@@ -161,7 +166,8 @@ namespace ClientTimeSync
 
         public void FoundNewClients()
         {
-            _asynchronousClient.Send((new TimeSyncConnectedClientsRequest()).ToJSON());
+            if (isConnected)
+                _asynchronousClient.Send((new TimeSyncConnectedClientsRequest()).ToJSON());
         }
     }
 }

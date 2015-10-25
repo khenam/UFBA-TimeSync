@@ -32,9 +32,13 @@ namespace ClientTimeSync
 
         public void Dispose()
         {
-            _client.Shutdown(SocketShutdown.Both);
-            _client.Dispose();
-            CanExit.Set();
+            lock (this)
+            {
+                _client.Shutdown(SocketShutdown.Both);
+                _client.BeginDisconnect(true, DisconnectCallback, _client);
+                _client.Dispose();
+                CanExit.Set();
+            }
             while (_client.Connected) ;
         }
 
@@ -70,10 +74,12 @@ namespace ClientTimeSync
 
                 connectDone.WaitOne();
 
-                _client.BeginDisconnect(true, DisconnectCallback, _client);
-
                 Receive();
                 CanExit.WaitOne();
+//                lock (this)
+//                {
+//                    _client.BeginDisconnect(true, DisconnectCallback, _client);
+//                }
 
                 // Write the response to the console.
                 Console.WriteLine("Response received : {0}", response);
@@ -86,6 +92,7 @@ namespace ClientTimeSync
             {
                 Console.WriteLine(e.ToString());
             }
+
         }
 
         private void DisconnectCallback(IAsyncResult ar)
@@ -134,13 +141,16 @@ namespace ClientTimeSync
             if (CanExit.WaitOne(0)) return;
             try
             {
-                // Create the state object.
-                var state = new StateObject();
-                state.workSocket = _client;
+                lock (this)
+                {
+                    // Create the state object.
+                    var state = new StateObject();
+                    state.workSocket = _client;
 
-                // Begin receiving the data from the remote device.
-                _client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    ReceiveCallback, state);
+                    // Begin receiving the data from the remote device.
+                    _client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                        ReceiveCallback, state);
+                }
             }
             catch (Exception e)
             {
@@ -153,14 +163,22 @@ namespace ClientTimeSync
             if (CanExit.WaitOne(0)) return;
             try
             {
-                var receiveTime = DateTime.Now;
-                // Retrieve the state object and the client socket 
-                // from the asynchronous state object.
-                var state = (StateObject) ar.AsyncState;
-                var client = state.workSocket;
+                DateTime receiveTime;
+                StateObject state;
+                int bytesRead;
+                lock (this) 
+                {
+                    if (CanExit.WaitOne(0)) return;
+           
+                    receiveTime = DateTime.Now;
+                    // Retrieve the state object and the client socket 
+                    // from the asynchronous state object.
+                    state = (StateObject) ar.AsyncState;
+                    var client = state.workSocket;
 
-                // Read data from the remote device.
-                var bytesRead = client.EndReceive(ar);
+                    // Read data from the remote device.
+                    bytesRead = client.EndReceive(ar);
+                }
 
                 if (bytesRead > 0)
                 {
@@ -188,10 +206,13 @@ namespace ClientTimeSync
             if (CanExit.WaitOne(0)) return;
             // Convert the string data to byte data using ASCII encoding.
             var byteData = Encoding.ASCII.GetBytes(data);
-
-            // Begin sending the data to the remote device.
-            _client.BeginSend(byteData, 0, byteData.Length, 0,
-                SendCallback, _client);
+            lock (this)
+            {
+                if (CanExit.WaitOne(0)) return;
+                // Begin sending the data to the remote device.
+                _client.BeginSend(byteData, 0, byteData.Length, 0,
+                    SendCallback, _client);
+            }
         }
 
         private void SendCallback(IAsyncResult ar)

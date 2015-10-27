@@ -8,6 +8,7 @@ using ClientTimeSync;
 using ServerTimeSync;
 using TimeSync;
 using TimeSyncBase;
+using TimeSyncBase.Connection;
 using Timer = System.Timers.Timer;
 
 namespace TimeSyncNodes
@@ -16,7 +17,7 @@ namespace TimeSyncNodes
     {
         private const string RemoteServerHash = "Server";
         private readonly Dictionary<string, ClientConnection> _clients = new Dictionary<string, ClientConnection>();
-//        private bool _isRunning;
+        private bool _ClientIsRunning = false;
         private Timer _pullGetClients;
         private Timer _pullTimer;
         private uint _lowerPullSyncInterval = 100;
@@ -102,11 +103,12 @@ namespace TimeSyncNodes
 
         private void TryConnectNewAddress(string keyName)
         {
-            if (IsRunning)
+            if (_ClientIsRunning)
             {
                 if (_clients.ContainsKey(keyName))
                 {
-                    _clients[keyName].ConnectThreaded();
+                    if (!_clients[keyName].IsConnected)
+                        _clients[keyName].ConnectThreaded();
                 }
             }
         }
@@ -134,11 +136,12 @@ namespace TimeSyncNodes
         {
             base.StartService();
             new Thread(StartClients).Start();
-            return true;
+            return _ClientIsRunning = true;
         }
 
         private void StartClients()
         {
+            TryConnectNewAddress(RemoteServerHash);
             if (!ServerIsRunning.WaitOne(DefaultTimeOut)) return;
             foreach (var client in _clients)
             {
@@ -150,9 +153,10 @@ namespace TimeSyncNodes
         {
             base.StopService();
             StopClients();
+            _ClientIsRunning = false;
         }
 
-        public override List<IPAddress> GetActiveConnections()
+        public override List<IPAddress> GetActiveIPs()
         {
             return _clients.Values.Select(con => con.GetRemoteIpAddress()).ToList();
         }
@@ -198,6 +202,11 @@ namespace TimeSyncNodes
                 // ignored
             }
             return false;
+        }
+
+        public virtual List<ConnectionBase> GetActiveConnections()
+        {
+            return _clients.Values.Cast<ConnectionBase>().ToList();
         }
 
         public void SetPullSyncTime(uint interval)

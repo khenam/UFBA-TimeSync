@@ -1,4 +1,5 @@
-﻿using TimeSyncBase.messages;
+﻿using System.Net;
+using TimeSyncBase.messages;
 
 namespace TimeSyncBase.Connection
 {
@@ -22,5 +23,9 @@ namespace TimeSyncBase.Connection
             HandleCorrectResponse(so, message);
             return true;
         }
+
+        public abstract IPAddress GetIP();
+        public abstract uint GetPort();
+        public abstract LocalTime GetLocalTime();
     }
 }

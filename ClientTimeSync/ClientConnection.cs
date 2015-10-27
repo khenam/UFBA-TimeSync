@@ -55,7 +55,7 @@ namespace ClientTimeSync
         }
         public uint GetRemotePort()
         {
-            return (uint) _asynchronousClient.Port;
+            return (uint) _asynchronousClient.RemotePort;
         }
 
         private void OnSendEvent(object sender, int bytesReceived)
@@ -130,7 +130,17 @@ namespace ClientTimeSync
             _asynchronousClient.Send(timeSyncRequest.ToJSON());
         }
 
-        public LocalTime GetLocalTime()
+        public override IPAddress GetIP()
+        {
+            return GetRemoteIpAddress();
+        }
+
+        public override uint GetPort()
+        {
+            return GetRemotePort();
+        }
+
+        public override LocalTime GetLocalTime()
         {
             return (LocalTime) _localTime.Clone();
         }

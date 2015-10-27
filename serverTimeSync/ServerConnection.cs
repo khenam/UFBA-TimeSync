@@ -33,7 +33,7 @@ namespace ServerTimeSync
         }
 
         public ServerConnection(uint defaultPort)
-            : this(defaultPort, IPAddress.Parse("0.0.0.0"))
+            : this(defaultPort, IPAddress.Any)
         {
         }
 
@@ -80,6 +80,21 @@ namespace ServerTimeSync
                 Send(so.workSocket, buildTimeSyncResponse(message as TimeSyncRequest, so.receiveTime));
             else if (message is TimeSyncConnectedClientsRequest)
                 Send(so.workSocket, buildTimeSyncConnectedClientsResponse());
+        }
+
+        public override IPAddress GetIP()
+        {
+            return _asynchronousSocketListener.GetIP();
+        }
+
+        public override uint GetPort()
+        {
+            return _asynchronousSocketListener.GetPort();
+        }
+
+        public override LocalTime GetLocalTime()
+        {
+            return (LocalTime) _localTime.Clone();
         }
 
         private string buildTimeSyncConnectResponse(TimeSyncConnectRequest message, StateObject so)
@@ -204,17 +219,7 @@ namespace ServerTimeSync
                 _serverThread.Join();
             }
         }
-
-        public IPAddress GetIP()
-        {
-            return _asynchronousSocketListener.GetIP();
-        }
-
-        public uint GetPort()
-        {
-            return _asynchronousSocketListener.GetPort();
-        }
-
+        
         public DateTime GetDateTime(bool localTime = true)
         {
             var dateTime = ((LocalTime) _localTime.Clone());

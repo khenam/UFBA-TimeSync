@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using ServerTimeSync;
 using TimeSyncBase;
+using TimeSyncBase.Connection;
 
 namespace TimeSync
 {
@@ -22,9 +23,9 @@ namespace TimeSync
 
         public ServerNode(uint port)
         {
-            _server = new ServerConnection();
-            IpAddress = _server.GetIP();
             Port = port;
+            _server = new ServerConnection(Port);
+            IpAddress = _server.GetIP();
         }
 
         public ServerNode(ServerConnection server)
@@ -58,9 +59,16 @@ namespace TimeSync
             IsRunning = false;
         }
 
-        public virtual List<IPAddress> GetActiveConnections()
+        public virtual List<IPAddress> GetActiveIPs()
         {
             return _server.GetConnectedIpAddresses();
+        }
+
+        public virtual List<ConnectionBase> GetActiveConnections()
+        {
+            var connectionBasesList = new List<ConnectionBase>();
+            connectionBasesList.Add(_server);
+            return connectionBasesList;
         }
 
         public List<NodeReference> GetActiveConnectionsNodes()

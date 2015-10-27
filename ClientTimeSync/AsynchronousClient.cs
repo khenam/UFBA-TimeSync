@@ -20,14 +20,14 @@ namespace ClientTimeSync
         private readonly string response = string.Empty;
         private Socket _client;
 
-        public AsynchronousClient(string hostName, int port)
+        public AsynchronousClient(string hostName, int remotePort)
         {
             remoteIP = IPAddress.Parse(hostName);
-            Port = port;
+            RemotePort = remotePort;
         }
 
         // The port number for the remote device.
-        public int Port { get; protected set; }
+        public int RemotePort { get; protected set; }
         public IPAddress remoteIP { get; protected set; }
 
         public void Dispose()
@@ -54,7 +54,7 @@ namespace ClientTimeSync
             // remote device is "host.contoso.com".
 //			IPHostEntry ipHostInfo = Dns.Resolve("host.contoso.com");
             var ipAddress = remoteIP;
-            return new IPEndPoint(ipAddress, Port);
+            return new IPEndPoint(ipAddress, RemotePort);
         }
 
         public void ConnectClient()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using TimeSyncBase;
+using TimeSyncBase.Connection;
 
 namespace TimeSync
 {
@@ -12,7 +13,8 @@ namespace TimeSync
         bool IsRunning { get; }
         bool StartService();
         void StopService();
-        List<IPAddress> GetActiveConnections();
+        List<IPAddress> GetActiveIPs();
+        List<ConnectionBase> GetActiveConnections();
         List<NodeReference> GetActiveConnectionsNodes();
         
         DateTime GetDateTime(bool localtime = true);

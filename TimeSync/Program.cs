@@ -94,17 +94,20 @@ namespace TimeSync
         {
             do
             {
-                PrintResumeScreen();
-                Thread.Sleep(300);
+                while (!Console.KeyAvailable)
+                {
+                    PrintResumeScreen();
+                    Thread.Sleep(300);
+                }
             } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
         }
 
         private static void PrintResumeScreen()
         {
             Console.Clear();
-            foreach (var ipNode in _node.GetActiveConnectionsNodes())
+            foreach (var ipNode in _node.GetActiveConnections())
             {
-                Console.WriteLine(string.Format("{0} | {1}",ipNode.IpAddress,ipNode.Port));
+                Console.WriteLine("{0} | {1} | {2}", ipNode.GetIP(), ipNode.GetPort(), ipNode.GetLocalTime().GetDateTime());
             }
         }
     }

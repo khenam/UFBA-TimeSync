@@ -13,19 +13,22 @@ namespace TimeSync
     {
         private readonly ServerConnection _server;
         protected ManualResetEvent ServerIsRunning = new ManualResetEvent(false);
+        protected LocalTime _serverLocalTime = new LocalTime();
 
         public ServerNode()
         {
-            _server = new ServerConnection();
+            _server = new ServerConnection(ServerConnection.DefaultPort, IPAddress.Any, _serverLocalTime);
             IpAddress = _server.GetIP();
             Port = _server.GetPort();
+            InitializeComponets();
         }
 
         public ServerNode(uint port)
         {
             Port = port;
-            _server = new ServerConnection(Port);
+            _server = new ServerConnection(Port,IPAddress.Any, _serverLocalTime);
             IpAddress = _server.GetIP();
+            InitializeComponets();
         }
 
         public ServerNode(ServerConnection server)
@@ -33,13 +36,14 @@ namespace TimeSync
             _server = server;
             IpAddress = _server.GetIP();
             Port = _server.GetPort();
+            InitializeComponets();
         }
 
         public ServerNode(uint port, IPAddress ipAddress)
         {
             Port = port;
             IpAddress = ipAddress;
-            _server = new ServerConnection(Port, IpAddress);
+            _server = new ServerConnection(Port, IpAddress, _serverLocalTime);
             InitializeComponets();
         }
 
@@ -90,6 +94,11 @@ namespace TimeSync
         {
             IsRunning = true;
             ServerIsRunning.Set();
+        }
+
+        public void UpdateDateTimeServer(DateTime newDateTime)
+        {
+            _serverLocalTime.SetDateTime(newDateTime);
         }
     }
 }

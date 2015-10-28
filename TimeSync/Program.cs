@@ -92,6 +92,7 @@ namespace TimeSync
 
         private static void LogScreenLoop()
         {
+            ConsoleKey consoleKey;
             do
             {
                 while (!Console.KeyAvailable)
@@ -99,7 +100,31 @@ namespace TimeSync
                     PrintResumeScreen();
                     Thread.Sleep(300);
                 }
-            } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+                consoleKey = Console.ReadKey(true).Key;
+                TreatSpecialKeys(consoleKey);
+            } while (consoleKey != ConsoleKey.Escape);
+        }
+
+        private static void TreatSpecialKeys(ConsoleKey consoleKey)
+        {
+            if (_node is ServerNode)
+            {
+                handleServerSpecialKeys(consoleKey);
+            }
+        }
+
+        private static void handleServerSpecialKeys(ConsoleKey consoleKey)
+        {
+            var serverNode = ((ServerNode)_node);
+            switch (consoleKey)
+            {
+                case ConsoleKey.Add:
+                    serverNode.UpdateDateTimeServer(DateTime.UtcNow.AddSeconds(10));
+                    break;
+                case ConsoleKey.Subtract:
+                    serverNode.UpdateDateTimeServer(DateTime.UtcNow.AddSeconds(-10));
+                    break;
+            }
         }
 
         private static void PrintResumeScreen()

@@ -17,7 +17,7 @@ namespace TimeSyncNodes
     {
         private const string RemoteServerHash = "Server";
         private readonly Dictionary<string, ClientConnection> _clients = new Dictionary<string, ClientConnection>();
-        private bool _ClientIsRunning = false;
+        private bool _clientIsRunning = false;
         private Timer _pullGetClients;
         private Timer _pullTimer;
         private uint _lowerPullSyncInterval = 100;
@@ -51,9 +51,9 @@ namespace TimeSyncNodes
         {
             DefaultTimeOut = 60*1000;
             if (checkServerPort)
-                AddNewItensInList(GetIpAddressFromHostName(hostName), port, RemoteServerHash);
+                AddNewItensInList(GetIpAddressFromHostName(hostName), port, _serverLocalTime, RemoteServerHash);
             else
-                AddNewItensInList(GetIpAddressFromHostName(hostName), null, RemoteServerHash);
+                AddNewItensInList(GetIpAddressFromHostName(hostName), null, _serverLocalTime, RemoteServerHash);
             TryRegisterRemoteServerHostEvents();
             _pullTimer = new Timer(30*1000);
             _pullTimer.Elapsed += SendSyncMessage;
@@ -88,13 +88,22 @@ namespace TimeSyncNodes
             }
         }
 
-        public void AddNewItensInList(IPAddress ipAddress, uint? port = null, string keyName = null)
+        public void AddNewItensInList(IPAddress ipAddress, uint? port = null, LocalTime localTime = null, string keyName = null)
         {
             if (!IsLocalIpAddress(ipAddress.ToString(), port) &&
                 _clients.All(client => !(Equals(client.Value.GetRemoteIpAddress(), ipAddress) && Equals(client.Value.GetRemotePort(), port.HasValue ? port.Value : client.Value.GetRemotePort()))))
             {
                 var key = keyName ?? ipAddress.GetAddressBytes().ToString();
-                var clientConnection = port.HasValue ? new ClientConnection(ipAddress.ToString(),port.Value) : new ClientConnection(ipAddress.ToString());
+                ClientConnection clientConnection;
+                if (localTime == null)
+                    clientConnection = port.HasValue
+                        ? new ClientConnection(ipAddress.ToString(), port.Value)
+                        : new ClientConnection(ipAddress.ToString());
+                else
+                    clientConnection = port.HasValue
+                        ? new ClientConnection(ipAddress.ToString(), port.Value, localTime)
+                        : new ClientConnection(ipAddress.ToString(),ClientConnection.DefaultPort,localTime);
+
                 _clients.Add(key, clientConnection);
                 _clients[key].OnDisconnect += OnDisconnectRemoveFromList;
                 TryConnectNewAddress(key);
@@ -103,7 +112,7 @@ namespace TimeSyncNodes
 
         private void TryConnectNewAddress(string keyName)
         {
-            if (_ClientIsRunning)
+            if (_clientIsRunning)
             {
                 if (_clients.ContainsKey(keyName))
                 {
@@ -136,13 +145,15 @@ namespace TimeSyncNodes
         {
             base.StartService();
             new Thread(StartClients).Start();
-            return _ClientIsRunning = true;
+            _pullTimer.Enabled = true;
+            _pullGetClients.Enabled = true;
+            return _clientIsRunning = true;
         }
 
         private void StartClients()
         {
-            TryConnectNewAddress(RemoteServerHash);
-            if (!ServerIsRunning.WaitOne(DefaultTimeOut)) return;
+//            TryConnectNewAddress(RemoteServerHash);
+//            if (!ServerIsRunning.WaitOne(DefaultTimeOut)) return;
             foreach (var client in _clients)
             {
                 client.Value.ConnectThreaded();
@@ -151,9 +162,11 @@ namespace TimeSyncNodes
 
         public override void StopService()
         {
+            _pullTimer.Enabled = false;
+            _pullGetClients.Enabled = false;
             base.StopService();
             StopClients();
-            _ClientIsRunning = false;
+            _clientIsRunning = false;
         }
 
         public override List<IPAddress> GetActiveIPs()
@@ -204,7 +217,7 @@ namespace TimeSyncNodes
             return false;
         }
 
-        public virtual List<ConnectionBase> GetActiveConnections()
+        public override List<ConnectionBase> GetActiveConnections()
         {
             return _clients.Values.Cast<ConnectionBase>().ToList();
         }

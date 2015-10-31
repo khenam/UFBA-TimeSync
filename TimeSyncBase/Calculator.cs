@@ -4,13 +4,13 @@ namespace TimeSyncBase
 {
     public class Calculator
     {
-        public static DateTime PullTimeSyncCalc(DateTime LocalSendTime, DateTime RemoteReceiveTime, DateTime Time,
-            DateTime LocalResponseTime)
+        public static DateTime PullTimeSyncCalc(DateTime localSendTime, DateTime remoteReceiveTime, DateTime time,
+            DateTime localResponseTime)
         {
-            var timaSpanGeneral = (LocalResponseTime.Subtract(LocalSendTime));
-            var timeSpanRemote = (Time.Subtract(RemoteReceiveTime));
-            var delay = new TimeSpan(timaSpanGeneral.Subtract(timeSpanRemote).Ticks/2);
-            return Time.Add(delay);
+            var timeSpanGeneral = (localResponseTime.Subtract(localSendTime));
+            var timeSpanRemote = (time.Subtract(remoteReceiveTime));
+            var delay = new TimeSpan(timeSpanGeneral.Subtract(timeSpanRemote).Ticks/2);
+            return time.Add(delay);
         }
     }
 }

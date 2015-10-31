@@ -75,11 +75,11 @@ namespace ServerTimeSync
         protected override void HandleCorrectResponse(StateObject so, TimeSyncMessage message)
         {
             if (message is TimeSyncConnectRequest)
-                Send(so.workSocket, buildTimeSyncConnectResponse(message as TimeSyncConnectRequest, so));
+                Send(so.workSocket, BuildTimeSyncConnectResponse((TimeSyncConnectRequest) message, so));
             else if (message is TimeSyncRequest)
-                Send(so.workSocket, buildTimeSyncResponse(message as TimeSyncRequest, so.receiveTime));
+                Send(so.workSocket, BuildTimeSyncResponse((TimeSyncRequest) message, so.receiveTime));
             else if (message is TimeSyncConnectedClientsRequest)
-                Send(so.workSocket, buildTimeSyncConnectedClientsResponse());
+                Send(so.workSocket, BuildTimeSyncConnectedClientsResponse());
         }
 
         public override IPAddress GetIP()
@@ -97,15 +97,15 @@ namespace ServerTimeSync
             return (LocalTime) _localTime.Clone();
         }
 
-        private string buildTimeSyncConnectResponse(TimeSyncConnectRequest message, StateObject so)
+        private string BuildTimeSyncConnectResponse(TimeSyncConnectRequest message, StateObject so)
         {
-            updateIPPortList(((IPEndPoint) so.workSocket.RemoteEndPoint).Address, message.NewConnectionPort);
+            UpdateIpPortList(((IPEndPoint) so.workSocket.RemoteEndPoint).Address, message.NewConnectionPort);
             var response = new TimeSyncConnectResponse();
             response.ReturnCode = 0;
             return response.ToJSON();
         }
 
-        private void updateIPPortList(IPAddress address, uint port)
+        private void UpdateIpPortList(IPAddress address, uint port)
         {
             var nodeReference = new NodeReference()
             {
@@ -122,7 +122,7 @@ namespace ServerTimeSync
             return string.Join(".", address.GetAddressBytes().Select(a => a.ToString("d")));
         }
 
-        private string buildTimeSyncConnectedClientsResponse()
+        private string BuildTimeSyncConnectedClientsResponse()
         {
             var IpsList =
                 GetConnectedIpAddresses()
@@ -156,11 +156,12 @@ namespace ServerTimeSync
             return IpsList;
         }
 
-        private string buildTimeSyncResponse(TimeSyncRequest message, DateTime receiveTime)
+        private string BuildTimeSyncResponse(TimeSyncRequest message, DateTime receiveTime)
         {
             var response = new TimeSyncResponse();
             response.RequestTime = message.RequestTime;
-            response.ReceivedTime = receiveTime.Add(_localTime.GetTimeSpan());
+            var timeSpan = _localTime.GetTimeSpan();
+            response.ReceivedTime = receiveTime.Add(timeSpan);
             response.ResponseTime = _localTime.GetDateTime();
             return response.ToJSON();
         }

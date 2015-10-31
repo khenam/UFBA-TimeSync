@@ -173,10 +173,11 @@ namespace ClientTimeSync
 
         private void UpdateLocalTime(TimeSyncResponse message, DateTime receiveTime)
         {
+            var responseTimeConverted = receiveTime.Subtract(_localTime.GetTimeSpan());
             var remoteHour = Calculator.PullTimeSyncCalc(message.RequestTime, message.ReceivedTime,
-                message.ResponseTime, receiveTime);
+                message.ResponseTime, responseTimeConverted);
 
-            _localTime.SetTimeSpan(-receiveTime.Subtract(remoteHour));
+            _localTime.SetTimeSpan(-responseTimeConverted.Subtract(remoteHour));
 
             if (OnTimeSync != null)
                 new Thread(() => OnTimeSync(this, _localTime.GetDateTime())).Start();

@@ -1,7 +1,6 @@
 using System;
-using TimeSyncNodes;
 
-namespace TimeSync
+namespace TimeSyncNodes
 {
     public class NodeFactory
     {

@@ -4,7 +4,7 @@ using System.Net;
 using TimeSyncBase;
 using TimeSyncBase.Connection;
 
-namespace TimeSync
+namespace TimeSyncNodes
 {
     public interface INode
     {

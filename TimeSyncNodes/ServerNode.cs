@@ -7,7 +7,7 @@ using ServerTimeSync;
 using TimeSyncBase;
 using TimeSyncBase.Connection;
 
-namespace TimeSync
+namespace TimeSyncNodes
 {
     public class ServerNode : INode
     {

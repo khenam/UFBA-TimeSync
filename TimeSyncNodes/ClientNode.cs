@@ -6,7 +6,6 @@ using System.Threading;
 using System.Timers;
 using ClientTimeSync;
 using ServerTimeSync;
-using TimeSync;
 using TimeSyncBase;
 using TimeSyncBase.Connection;
 using Timer = System.Timers.Timer;

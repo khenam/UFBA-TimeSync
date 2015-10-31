@@ -1,4 +1,4 @@
-namespace TimeSync
+namespace TimeSyncNodes
 {
     public enum ETypeNode
     {

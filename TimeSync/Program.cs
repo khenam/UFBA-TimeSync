@@ -98,7 +98,7 @@ namespace TimeSync
                 while (!Console.KeyAvailable)
                 {
                     PrintResumeScreen();
-                    Thread.Sleep(300);
+                    Thread.Sleep(10);
                 }
                 consoleKey = Console.ReadKey(true).Key;
                 TreatSpecialKeys(consoleKey);

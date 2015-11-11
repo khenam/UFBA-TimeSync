@@ -23,13 +23,13 @@ namespace WindowsFormsApplication1
         public Principal()
         {
             InitializeComponent();
-            _refrashTimer.Interval = 500;
+            _refrashTimer.Interval = 10;
             _refrashTimer.Elapsed += refrashTable;
         }
 
         private void refrashTable(object sender, ElapsedEventArgs e)
         {
-            _node.OnNodesConnectedChange(this, _node.GetActiveConnections());   
+            updateViewConnections(this, _node.GetActiveConnections());   
         }
 
         private void visualizaçãoToolStripMenuItem_Click(object sender, EventArgs e)
@@ -71,9 +71,9 @@ namespace WindowsFormsApplication1
             if (form.Node != null)
             {
                 _node = form.Node;
-                registerEvents(_node);
-//                _node.StartService();
-                _node.OnNodesConnectedChange(this, _node.GetActiveConnections());
+//                registerEvents(_node);
+                _node.StartService();
+                updateViewConnections(this, _node.GetActiveConnections());
                 _refrashTimer.Enabled = true;
             }
             form.Dispose();

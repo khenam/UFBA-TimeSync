@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -21,6 +22,7 @@ namespace TimeSyncNodes
         private Timer _pullTimer;
         private uint _lowerPullSyncInterval = 100;
         private uint _lowerPullSyncClientsInterval = 1000;
+        public EventHandler<List<ConnectionBase>> OnNodesConnectedChange;
 
         public ClientNode(string hostName)
         {
@@ -106,6 +108,9 @@ namespace TimeSyncNodes
                 _clients.Add(key, clientConnection);
                 _clients[key].OnDisconnect += OnDisconnectRemoveFromList;
                 TryConnectNewAddress(key);
+
+                if (OnNodesConnectedChange != null)
+                    new Thread(() => OnNodesConnectedChange(this, GetActiveConnections())).Start();
             }
         }
 
@@ -125,6 +130,8 @@ namespace TimeSyncNodes
         {
             if (_clients.ContainsKey(_clients.First(item => item.Value.Equals(sender)).Key))
                 _clients.Remove(_clients.First(item => item.Value.Equals(sender)).Key);
+            if (OnNodesConnectedChange != null)
+                new Thread(() => OnNodesConnectedChange(this, GetActiveConnections())).Start();
         }
 
         private void SendGetClientsMessage(object sender, ElapsedEventArgs e)
@@ -138,6 +145,8 @@ namespace TimeSyncNodes
             {
                 client.Value.SyncTime();
             }
+            if (OnNodesConnectedChange != null)
+                new Thread(() => OnNodesConnectedChange(this, GetActiveConnections())).Start();
         }
 
         public override bool StartService()

@@ -125,8 +125,16 @@ namespace ServerTimeSync
             var handler = state.workSocket;
 
             // Read data from the client socket. 
-            var bytesRead = handler.EndReceive(ar);
-
+            var bytesRead = 0;
+            try
+            {
+                bytesRead = handler.EndReceive(ar);
+            }
+            catch (System.Exception)
+            {
+                // ignored
+            }
+            
             if (bytesRead > 0)
             {
                 // There  might be more data, so store the data received so far.

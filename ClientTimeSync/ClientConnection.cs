@@ -165,7 +165,7 @@ namespace ClientTimeSync
 
         private void UpdateLocalTimeAndTriggerEvent(DateTime receiveTimeConverted, DateTime remoteHour)
         {
-            _localTime.SetTimeSpan(-receiveTimeConverted.Subtract(remoteHour));
+            _localTime.SetTimeSpan(-receiveTimeConverted.ToUniversalTime().Subtract(remoteHour.ToUniversalTime()));
 
             if (OnTimeSync != null)
                 new Thread(() => OnTimeSync(this, _localTime.GetDateTime())).Start();

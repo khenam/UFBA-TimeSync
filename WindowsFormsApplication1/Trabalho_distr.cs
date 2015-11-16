@@ -111,5 +111,11 @@ namespace WindowsFormsApplication1
             form.ShowDialog(this);
             form.Dispose();
         }
+
+        private void Principal_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (_node != null)
+                _node.StopService();
+        }
     }
 }

@@ -39,7 +39,10 @@
     <Compile Include="LocalTime.cs" />
     <Compile Include="messages\ETimeSyncMessageTypes.cs" />
     <Compile Include="messages\requests\TimeSyncConnectRequest.cs" />
+    <Compile Include="messages\requests\TimeSyncSimpleRequest.cs" />
+    <Compile Include="messages\responseless\TimeSyncResponseless.cs" />
     <Compile Include="messages\responses\TimeSyncConnectResponse.cs" />
+    <Compile Include="messages\responses\TimeSyncSimpleResponse.cs" />
     <Compile Include="NodeReference.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="messages\MessageFactory.cs" />

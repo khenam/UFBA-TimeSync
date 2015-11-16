@@ -182,7 +182,7 @@ namespace TimeSyncNodes
             return _clients.Values.Select(con => con.GetRemoteIpAddress()).ToList();
         }
 
-        public List<NodeReference> GetActiveConnectionsNodes()
+        public new List<NodeReference> GetActiveConnectionsNodes()
         {
             return _clients.Values.Select(con => new NodeReference() { IpAddress = con.GetRemoteIpAddress().ToString(), Port = con.GetRemotePort() }).ToList();
         }

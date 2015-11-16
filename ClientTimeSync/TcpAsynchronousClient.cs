@@ -7,7 +7,7 @@ using TimeSyncBase.Connection;
 
 namespace ClientTimeSync
 {
-    public class AsynchronousClient : IDisposable
+    public class TcpAsynchronousClient : IAsynchronousClient
     {
         private readonly ManualResetEvent CanExit =
             new ManualResetEvent(false);
@@ -20,7 +20,7 @@ namespace ClientTimeSync
         private readonly string response = string.Empty;
         private Socket _client;
 
-        public AsynchronousClient(string hostName, int remotePort)
+        public TcpAsynchronousClient(string hostName, int remotePort)
         {
             remoteIP = IPAddress.Parse(hostName);
             RemotePort = remotePort;

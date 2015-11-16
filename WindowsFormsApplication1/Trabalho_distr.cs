@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
-using Timer = System.Timers.Timer;
-using TimeSyncBase;
 using TimeSyncBase.Connection;
 using TimeSyncNodes;
+using Timer = System.Timers.Timer;
 
 namespace WindowsFormsApplication1
 {
@@ -86,14 +79,30 @@ namespace WindowsFormsApplication1
 
         private void updateViewConnections(object sender, List<ConnectionBase> e)
         {
-            Tabela.Invoke((MethodInvoker)(() =>{
-                if (Tabela.Rows.Count > 0)
-                    Tabela.Rows.Clear();
-                foreach ( var refNode in e )
+            try
+            {
+                Tabela.Invoke((MethodInvoker)(() =>
                 {
-                    Tabela.Rows.Add(new String[] { refNode.GetIP().ToString(), refNode.GetPort().ToString(), refNode.GetLocalTime().GetDateTime().ToString() });
-                }
-            }));
+                    try
+                    {
+                        if (Tabela.Rows.Count > 0)
+                            Tabela.Rows.Clear();
+                        foreach (var refNode in e)
+                        {
+                            Tabela.Rows.Add(refNode.GetIP().ToString(), refNode.GetPort().ToString(), refNode.GetLocalTime().GetDateTime().ToString());
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
+                    
+                }));
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
 
         private void clienteToolStripMenuItem_Click(object sender, EventArgs e)

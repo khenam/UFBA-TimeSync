@@ -34,9 +34,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IAsynchronousSocketListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerConnection.cs" />
-    <Compile Include="AsynchronousSocketListener.cs" />
+    <Compile Include="TcpAsynchronousSocketListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TimeSyncBase\TimeSyncBase.csproj">

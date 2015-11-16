@@ -6,7 +6,10 @@
         TimeSyncConnectResponse,
         TimeSyncRequest,
         TimeSyncResponse,
+        TimeSyncSimpleRequest,
+        TimeSyncSimpleResponse,
         TimeSyncConnectedClientsRequest,
-        TimeSyncConnectedClientsResponse
+        TimeSyncConnectedClientsResponse,
+        TimeSyncResponseless
     }
 }

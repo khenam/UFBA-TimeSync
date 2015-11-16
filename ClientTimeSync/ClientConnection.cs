@@ -13,7 +13,7 @@ namespace ClientTimeSync
 {
     public class ClientConnection : ConnectionBase
     {
-        private readonly AsynchronousClient _asynchronousClient;
+        private readonly IAsynchronousClient _asynchronousClient;
         private readonly LocalTime _localTime;
         private Thread _clientThread;
         public EventHandler<Socket> OnConnect;
@@ -31,7 +31,7 @@ namespace ClientTimeSync
 
         public ClientConnection(string hostName, uint port, LocalTime localTimeClient)
         {
-            _asynchronousClient = new AsynchronousClient(hostName, (int) port);
+            _asynchronousClient = new TcpAsynchronousClient(hostName, (int) port);
             ListnerEvents();
             _localTime = localTimeClient;
         }
@@ -125,7 +125,7 @@ namespace ClientTimeSync
 
         public void SyncTime()
         {
-            var timeSyncRequest = new TimeSyncRequest();
+            var timeSyncRequest = new TimeSyncSimpleRequest();
             timeSyncRequest.RequestTime = _localTime.GetDateTime();
             _asynchronousClient.Send(timeSyncRequest.ToJSON());
         }
@@ -147,10 +147,28 @@ namespace ClientTimeSync
 
         protected override void HandleCorrectResponse(StateObject so, TimeSyncMessage message)
         {
-            if (message is TimeSyncResponse)
+            if (message is TimeSyncSimpleResponse)
+                UpdateLocalTimeSimple(message as TimeSyncSimpleResponse, so.receiveTime);
+            else if (message is TimeSyncResponse)
                 UpdateLocalTime(message as TimeSyncResponse, so.receiveTime);
             else if (message is TimeSyncConnectedClientsResponse)
                 UpdateClientsConnected(message as TimeSyncConnectedClientsResponse);
+        }
+
+        private void UpdateLocalTimeSimple(TimeSyncSimpleResponse message, DateTime receiveTime)
+        {
+            var receiveTimeConverted = receiveTime.Subtract(_localTime.GetTimeSpan());
+            var remoteHour = Calculator.PullTimeSyncCalc(message.RequestTime, message.ResponseTime, receiveTimeConverted);
+
+            UpdateLocalTimeAndTriggerEvent(receiveTimeConverted, remoteHour);
+        }
+
+        private void UpdateLocalTimeAndTriggerEvent(DateTime receiveTimeConverted, DateTime remoteHour)
+        {
+            _localTime.SetTimeSpan(-receiveTimeConverted.Subtract(remoteHour));
+
+            if (OnTimeSync != null)
+                new Thread(() => OnTimeSync(this, _localTime.GetDateTime())).Start();
         }
 
         private void UpdateClientsConnected(TimeSyncConnectedClientsResponse message)
@@ -173,14 +191,11 @@ namespace ClientTimeSync
 
         private void UpdateLocalTime(TimeSyncResponse message, DateTime receiveTime)
         {
-            var responseTimeConverted = receiveTime.Subtract(_localTime.GetTimeSpan());
+            var receiveTimeConverted = receiveTime.Subtract(_localTime.GetTimeSpan());
             var remoteHour = Calculator.PullTimeSyncCalc(message.RequestTime, message.ReceivedTime,
-                message.ResponseTime, responseTimeConverted);
+                message.ResponseTime, receiveTimeConverted);
 
-            _localTime.SetTimeSpan(-responseTimeConverted.Subtract(remoteHour));
-
-            if (OnTimeSync != null)
-                new Thread(() => OnTimeSync(this, _localTime.GetDateTime())).Start();
+            UpdateLocalTimeAndTriggerEvent(receiveTimeConverted, remoteHour);
         }
 
         public void FoundNewClients()

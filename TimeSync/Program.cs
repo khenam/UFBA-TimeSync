@@ -9,6 +9,7 @@ namespace TimeSync
     {
         private const string Server = "server";
         private const string Client = "client";
+        private const int MillisecondsTimeout = 100;
         private static ETypeNode nodeType;
         private static INode _node;
         private static string _hostname;
@@ -98,7 +99,7 @@ namespace TimeSync
                 while (!Console.KeyAvailable)
                 {
                     PrintResumeScreen();
-                    Thread.Sleep(10);
+                    Thread.Sleep(MillisecondsTimeout);
                 }
                 consoleKey = Console.ReadKey(true).Key;
                 TreatSpecialKeys(consoleKey);

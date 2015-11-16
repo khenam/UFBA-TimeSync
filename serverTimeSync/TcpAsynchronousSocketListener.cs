@@ -8,7 +8,7 @@ using TimeSyncBase.Connection;
 namespace ServerTimeSync
 {
     // State object for reading client data asynchronously
-    public class AsynchronousSocketListener : IDisposable
+    public class TcpAsynchronousSocketListener : IAsynchronousSocketListener
     {
         private readonly IPAddress _ipAddress;
         private readonly uint _port;
@@ -17,7 +17,7 @@ namespace ServerTimeSync
         private readonly ManualResetEvent CanExit = new ManualResetEvent(false);
         private Socket _listener;
 
-        public AsynchronousSocketListener(uint defaultPort, IPAddress ipAddress = null)
+        public TcpAsynchronousSocketListener(uint defaultPort, IPAddress ipAddress = null)
         {
             _ipAddress = ipAddress;
             _port = defaultPort;

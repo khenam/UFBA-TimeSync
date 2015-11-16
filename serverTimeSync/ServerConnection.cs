@@ -14,7 +14,7 @@ namespace ServerTimeSync
 {
     public class ServerConnection : ConnectionBase
     {
-        private readonly AsynchronousSocketListener _asynchronousSocketListener;
+        private readonly IAsynchronousSocketListener _asynchronousSocketListener;
         private readonly LocalTime _localTime;
         private readonly List<Socket> _socketList;
         private Thread _serverThread;
@@ -26,7 +26,7 @@ namespace ServerTimeSync
 
         public ServerConnection(uint defaultPort, IPAddress ipAddress, LocalTime localTime)
         {
-            _asynchronousSocketListener = new AsynchronousSocketListener(defaultPort, ipAddress);
+            _asynchronousSocketListener = new TcpAsynchronousSocketListener(defaultPort, ipAddress);
             _localTime = localTime;
             _socketList = new List<Socket>();
             ListnerEvents();
@@ -76,10 +76,21 @@ namespace ServerTimeSync
         {
             if (message is TimeSyncConnectRequest)
                 Send(so.workSocket, BuildTimeSyncConnectResponse((TimeSyncConnectRequest) message, so));
+            else if (message is TimeSyncSimpleRequest)
+                Send(so.workSocket, BuildTimeSyncResponseSimple((TimeSyncSimpleRequest) message, so.receiveTime));
             else if (message is TimeSyncRequest)
                 Send(so.workSocket, BuildTimeSyncResponse((TimeSyncRequest) message, so.receiveTime));
             else if (message is TimeSyncConnectedClientsRequest)
                 Send(so.workSocket, BuildTimeSyncConnectedClientsResponse());
+        }
+
+        private string BuildTimeSyncResponseSimple(TimeSyncSimpleRequest message, DateTime receiveTime)
+        {
+            var response = new TimeSyncSimpleResponse();
+            response.RequestTime = message.RequestTime;
+            var timeSpan = _localTime.GetTimeSpan();
+            response.ResponseTime = receiveTime.Add(timeSpan);
+            return response.ToJSON();
         }
 
         public override IPAddress GetIP()

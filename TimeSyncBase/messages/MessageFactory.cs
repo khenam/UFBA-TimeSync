@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using TimeSyncBase.messages;
 using TimeSyncBase.messages.requests;
+using TimeSyncBase.messages.responseless;
 using TimeSyncBase.messages.responses;
 
 namespace TimeSyncBase.messages
@@ -23,10 +24,16 @@ namespace TimeSyncBase.messages
                         return JsonConvert.DeserializeObject<TimeSyncRequest>(message);
                     case ETimeSyncMessageTypes.TimeSyncResponse:
                         return JsonConvert.DeserializeObject<TimeSyncResponse>(message);
+                    case ETimeSyncMessageTypes.TimeSyncSimpleRequest:
+                        return JsonConvert.DeserializeObject<TimeSyncSimpleRequest>(message);
+                    case ETimeSyncMessageTypes.TimeSyncSimpleResponse:
+                        return JsonConvert.DeserializeObject<TimeSyncSimpleResponse>(message);
                     case ETimeSyncMessageTypes.TimeSyncConnectedClientsRequest:
                         return JsonConvert.DeserializeObject<TimeSyncConnectedClientsRequest>(message);
                     case ETimeSyncMessageTypes.TimeSyncConnectedClientsResponse:
                         return JsonConvert.DeserializeObject<TimeSyncConnectedClientsResponse>(message);
+                    case ETimeSyncMessageTypes.TimeSyncResponseless:
+                        return JsonConvert.DeserializeObject<TimeSyncResponseless>(message);
                     default:
                         return null;
                 }

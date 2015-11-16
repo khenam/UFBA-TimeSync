@@ -31,7 +31,7 @@ namespace ClientTimeSync
 
         public ClientConnection(string hostName, uint port, LocalTime localTimeClient)
         {
-            _asynchronousClient = new TcpAsynchronousClient(hostName, (int) port);
+            _asynchronousClient = new UdpAsynchronousClient(hostName, (int) port);
             ListnerEvents();
             _localTime = localTimeClient;
         }

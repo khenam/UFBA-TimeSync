@@ -8,7 +8,7 @@ using TimeSyncBase.Connection;
 namespace ServerTimeSync
 {
     // State object for reading client data asynchronously
-    public class TcpAsynchronousSocketListener : IAsynchronousSocketListener
+    public class UdpAsynchronousSocketListener : IAsynchronousSocketListener
     {
         private readonly IPAddress _ipAddress;
         private readonly uint _port;
@@ -17,7 +17,7 @@ namespace ServerTimeSync
         private readonly ManualResetEvent CanExit = new ManualResetEvent(false);
         private Socket _listener;
 
-        public TcpAsynchronousSocketListener(uint defaultPort, IPAddress ipAddress = null)
+        public UdpAsynchronousSocketListener(uint defaultPort, IPAddress ipAddress = null)
         {
             _ipAddress = ipAddress;
             _port = defaultPort;
@@ -56,15 +56,15 @@ namespace ServerTimeSync
             }
             var localEndPoint = new IPEndPoint(ipAddress, (int) _port);
 
-            // Create a TCP/IP socket.
+            // Create a UDP/IP socket.
             _listener = new Socket(AddressFamily.InterNetwork,
-                SocketType.Stream, ProtocolType.Tcp);
+                SocketType.Dgram, ProtocolType.Udp);
 
             // Bind the socket to the local endpoint and listen for incoming connections.
             try
             {
                 _listener.Bind(localEndPoint);
-                _listener.Listen(100);
+//                _listener.Listen(100);
                 CanExit.Reset();
                 if (OnStartListen != null)
                     OnStartListen(this, _listener);
@@ -74,10 +74,13 @@ namespace ServerTimeSync
                     allDone.Reset();
 
                     // Start an asynchronous socket to listen for connections.
-                    Console.WriteLine("Waiting for a connection...");
-                    _listener.BeginAccept(
-                        AcceptCallback,
-                        _listener);
+//                    Console.WriteLine("Waiting for a connection...");
+                    // Create the state object.
+                    var state = new StateObject();
+                    state.workSocket = _listener;
+                    state.RemoteEndPoint = localEndPoint;
+                    _listener.BeginReceiveFrom(state.buffer, 0, StateObject.BufferSize, 0,ref state.RemoteEndPoint,
+                        ReadCallback, state);
 
                     // Wait until a connection is made before continuing.
                     allDone.WaitOne();
@@ -98,22 +101,21 @@ namespace ServerTimeSync
         public void AcceptCallback(IAsyncResult ar)
         {
             // Signal the main thread to continue.
-            allDone.Set();
+//            allDone.Set();
             if (CanExit.WaitOne(0)) return;
 
             // Get the socket that handles the client request.
-            var listener = (Socket) ar.AsyncState;
-            var handler = listener.EndAccept(ar);
+            var state = (StateObject)ar.AsyncState;
+            var handler = state.workSocket;
 
             if (OnConnect != null)
                 OnConnect(this, handler);
 
             // Create the state object.
-            var state = new StateObject();
-            state.workSocket = handler;
-            state.RemoteEndPoint = state.workSocket.RemoteEndPoint;
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                ReadCallback, state);
+//            var state = new StateObject();
+//            state.workSocket = handler;
+//            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+//                ReadCallback, state);
         }
 
         public void ReadCallback(IAsyncResult ar)
@@ -122,6 +124,7 @@ namespace ServerTimeSync
             if (CanExit.WaitOne(0)) return;
             // Retrieve the state object and the handler socket
             // from the asynchronous state object.
+            AcceptCallback(ar);
             var state = (StateObject) ar.AsyncState;
             var handler = state.workSocket;
 
@@ -151,10 +154,12 @@ namespace ServerTimeSync
                 state.sb.Clear();
             }
 
+            allDone.Set();
+            
             if (!CanExit.WaitOne(0))
             {
-                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    ReadCallback, state);
+                handler.BeginReceiveFrom(state.buffer, 0, StateObject.BufferSize, 0, ref state.RemoteEndPoint,
+                        ReadCallback, state);
             }
         }
 

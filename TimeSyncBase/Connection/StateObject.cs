@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -15,12 +16,14 @@ namespace TimeSyncBase.Connection
         public StringBuilder sb = new StringBuilder();
         // Client  socket.
         public Socket workSocket;
+        public EndPoint RemoteEndPoint;
 
         public object Clone()
         {
             return new StateObject
             {
                 workSocket = workSocket,
+                RemoteEndPoint = RemoteEndPoint,
                 buffer = (byte[]) buffer.Clone(),
                 sb = new StringBuilder(sb.ToString()),
                 receiveTime = new DateTime(receiveTime.Ticks)

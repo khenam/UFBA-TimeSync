@@ -26,7 +26,7 @@ namespace ServerTimeSync
 
         public ServerConnection(uint defaultPort, IPAddress ipAddress, LocalTime localTime)
         {
-            _asynchronousSocketListener = new TcpAsynchronousSocketListener(defaultPort, ipAddress);
+            _asynchronousSocketListener = new UdpAsynchronousSocketListener(defaultPort, ipAddress);
             _localTime = localTime;
             _socketList = new List<Socket>();
             ListnerEvents();
@@ -110,7 +110,7 @@ namespace ServerTimeSync
 
         private string BuildTimeSyncConnectResponse(TimeSyncConnectRequest message, StateObject so)
         {
-            UpdateIpPortList(((IPEndPoint) so.workSocket.RemoteEndPoint).Address, message.NewConnectionPort);
+            UpdateIpPortList(((IPEndPoint )so.RemoteEndPoint).Address, message.NewConnectionPort);
             var response = new TimeSyncConnectResponse();
             response.ReturnCode = 0;
             return response.ToJSON();

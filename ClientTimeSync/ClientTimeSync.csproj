@@ -37,6 +37,7 @@
     <Compile Include="IAsynchronousClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ClientConnection.cs" />
+    <Compile Include="UdpAsynchronousClient.cs" />
     <Compile Include="TcpAsynchronousClient.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

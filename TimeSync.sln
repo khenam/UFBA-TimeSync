@@ -17,10 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeSyncNodes", "TimeSyncNo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApplication1", "WindowsFormsApplication1\WindowsFormsApplication1.csproj", "{655CAAD4-BEAA-4930-9986-76B54E67E1B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerTimeSync", "serverTimeSync\ServerTimeSync.csproj", "{03049F90-E866-40AD-86B0-73B36ACE010F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientTimeSync", "ClientTimeSync\ClientTimeSync.csproj", "{786135FB-BCBA-4795-A410-FFEFD6FDF24F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

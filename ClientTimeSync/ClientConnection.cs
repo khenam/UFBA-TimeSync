@@ -73,10 +73,18 @@ namespace ClientTimeSync
         private void OnConnectEvent(object sender, Socket e)
         {
             IsConnected = true;
+			InformPortConnection ();
             if (OnConnect != null)
                 new Thread(() => OnConnect(this, e)).Start();
 
         }
+
+		void InformPortConnection ()
+		{
+			var message = new TimeSyncConnectRequest ();
+			message.NewConnectionPort = (uint) _asynchronousClient.RemotePort;
+			_asynchronousClient.Send (message.ToJSON());
+		}
 
         private void OnDisconnectEvent(object sender, Socket e)
         {

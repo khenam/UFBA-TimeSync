@@ -69,11 +69,12 @@ namespace ClientTimeSync
                     SocketType.Dgram, ProtocolType.Udp);
 
                 // Connect to the remote endpoint.
-                _client.BeginConnect(remoteEP,
-                    ConnectCallback, _client);
+                //_client.BeginConnect(remoteEP, ConnectCallback, _client);
 
-                connectDone.WaitOne();
-
+                //connectDone.WaitOne();
+				if (OnConnect != null)
+					OnConnect(this, _client);
+				
                 Receive();
                 CanExit.WaitOne();
 //                lock (this)
@@ -127,8 +128,8 @@ namespace ClientTimeSync
 
                 // Signal that the connection has been made.
                 connectDone.Set();
-                if (OnConnect != null)
-                    OnConnect(this, client);
+//                if (OnConnect != null)
+//                    OnConnect(this, client);
             }
             catch (Exception e)
             {
@@ -149,7 +150,7 @@ namespace ClientTimeSync
                     state.RemoteEndPoint = getRemoteEndPoint();
                     // Begin receiving the data from the remote device.
                     _client.BeginReceiveFrom(state.buffer, 0, StateObject.BufferSize, 0, ref state.RemoteEndPoint,
-                        ReceiveCallback, state);
+						new AsyncCallback(ReceiveCallback), state);
                 }
             }
             catch (Exception e)
@@ -211,8 +212,8 @@ namespace ClientTimeSync
                 if (CanExit.WaitOne(0)) return;
                 // Begin sending the data to the remote device.
                 
-                _client.BeginSend(byteData, 0, byteData.Length, 0,
-                    SendCallback, _client);
+				_client.BeginSendTo(byteData, 0, byteData.Length, SocketFlags.None,getRemoteEndPoint(),
+					new AsyncCallback(SendCallback), _client);
             }
         }
 
@@ -225,7 +226,7 @@ namespace ClientTimeSync
                 var client = (Socket) ar.AsyncState;
 
                 // Complete sending the data to the remote device.
-                var bytesSent = client.EndSend(ar);
+				var bytesSent = client.EndSendTo(ar);
                 Console.WriteLine("Sent {0} bytes to server.", bytesSent);
 
                 // Signal that all bytes have been sent.

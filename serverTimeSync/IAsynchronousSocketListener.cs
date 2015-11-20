@@ -14,6 +14,6 @@ namespace ServerTimeSync
         IPAddress GetIP();
         uint GetPort();
         void StartListening();
-        void Send(Socket handler, string messsage);
+		void Send(StateObject handler, string messsage);
     }
 }

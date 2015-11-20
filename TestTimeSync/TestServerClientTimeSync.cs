@@ -126,7 +126,7 @@ namespace TestTimeSync
             _server1.OnReceive += (sender, o) =>
             {
                 if (o.sb.ToString() == TestString) serverReceive.Set();
-                _server1.Send(o.workSocket, TestString);
+                _server1.Send(o, TestString);
             };
             _server1.OnSend += (sender, i) => { if (TestString.Length == i) serverSend.Set(); };
             _client1.OnSend += (sender, i) => { if (TestString.Length == i) clientSend.Set(); };

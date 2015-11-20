@@ -75,13 +75,13 @@ namespace ServerTimeSync
         protected override void HandleCorrectResponse(StateObject so, TimeSyncMessage message)
         {
             if (message is TimeSyncConnectRequest)
-                Send(so.workSocket, BuildTimeSyncConnectResponse((TimeSyncConnectRequest) message, so));
+                Send(so, BuildTimeSyncConnectResponse((TimeSyncConnectRequest) message, so));
             else if (message is TimeSyncSimpleRequest)
-                Send(so.workSocket, BuildTimeSyncResponseSimple((TimeSyncSimpleRequest) message, so.receiveTime));
+                Send(so, BuildTimeSyncResponseSimple((TimeSyncSimpleRequest) message, so.receiveTime));
             else if (message is TimeSyncRequest)
-                Send(so.workSocket, BuildTimeSyncResponse((TimeSyncRequest) message, so.receiveTime));
+                Send(so, BuildTimeSyncResponse((TimeSyncRequest) message, so.receiveTime));
             else if (message is TimeSyncConnectedClientsRequest)
-                Send(so.workSocket, BuildTimeSyncConnectedClientsResponse());
+                Send(so, BuildTimeSyncConnectedClientsResponse());
         }
 
         private string BuildTimeSyncResponseSimple(TimeSyncSimpleRequest message, DateTime receiveTime)
@@ -212,7 +212,7 @@ namespace ServerTimeSync
             }
         }
 
-        public void Send(Socket handler, string messsage)
+		public void Send(StateObject handler, string messsage)
         {
             /*
 	        var thread = new Thread(() => _asynchronousSocketListener.Send(handler, messsage));

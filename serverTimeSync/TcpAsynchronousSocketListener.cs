@@ -158,15 +158,15 @@ namespace ServerTimeSync
             }
         }
 
-        public void Send(Socket handler, string data)
+		public void Send(StateObject so, string data)
         {
             if (CanExit.WaitOne(0)) return;
             // Convert the string data to byte data using ASCII encoding.
             var byteData = Encoding.ASCII.GetBytes(data);
 
             // Begin sending the data to the remote device.
-            handler.BeginSend(byteData, 0, byteData.Length, 0,
-                SendCallback, handler);
+			so.workSocket.BeginSend(byteData, 0, byteData.Length, 0,
+                SendCallback, so);
         }
 
         private void SendCallback(IAsyncResult ar)

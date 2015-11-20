@@ -78,9 +78,10 @@ namespace ServerTimeSync
                     // Create the state object.
                     var state = new StateObject();
                     state.workSocket = _listener;
-                    state.RemoteEndPoint = localEndPoint;
-                    _listener.BeginReceiveFrom(state.buffer, 0, StateObject.BufferSize, 0,ref state.RemoteEndPoint,
-                        ReadCallback, state);
+					state.RemoteEndPoint = new IPEndPoint(ipAddress, (int)_port);
+					state.buffer = new byte[StateObject.BufferSize];
+					_listener.BeginReceiveFrom(state.buffer, 0, StateObject.BufferSize, SocketFlags.None, ref state.RemoteEndPoint,
+						new AsyncCallback(ReadCallback), state);
 
                     // Wait until a connection is made before continuing.
                     allDone.WaitOne();
@@ -124,15 +125,15 @@ namespace ServerTimeSync
             if (CanExit.WaitOne(0)) return;
             // Retrieve the state object and the handler socket
             // from the asynchronous state object.
-            AcceptCallback(ar);
+//            AcceptCallback(ar);
             var state = (StateObject) ar.AsyncState;
             var handler = state.workSocket;
 
             // Read data from the client socket. 
-            var bytesRead = 0;
+			var bytesRead = 0;
             try
             {
-                bytesRead = handler.EndReceive(ar);
+				bytesRead = handler.EndReceiveFrom(ar,ref state.RemoteEndPoint);
             }
             catch (System.Exception)
             {
@@ -158,20 +159,21 @@ namespace ServerTimeSync
             
             if (!CanExit.WaitOne(0))
             {
-                handler.BeginReceiveFrom(state.buffer, 0, StateObject.BufferSize, 0, ref state.RemoteEndPoint,
-                        ReadCallback, state);
+				state.buffer = new byte[StateObject.BufferSize];
+				handler.BeginReceiveFrom(state.buffer, 0, StateObject.BufferSize, SocketFlags.None, ref state.RemoteEndPoint,
+					new AsyncCallback(ReadCallback), state);
             }
         }
 
-        public void Send(Socket handler, string data)
+		public void Send(StateObject so, string data)
         {
             if (CanExit.WaitOne(0)) return;
             // Convert the string data to byte data using ASCII encoding.
             var byteData = Encoding.ASCII.GetBytes(data);
 
             // Begin sending the data to the remote device.
-            handler.BeginSend(byteData, 0, byteData.Length, 0,
-                SendCallback, handler);
+			so.workSocket.BeginSendTo(byteData, 0, byteData.Length, 0,so.RemoteEndPoint,
+				new AsyncCallback(SendCallback), so);
         }
 
         private void SendCallback(IAsyncResult ar)
@@ -183,7 +185,7 @@ namespace ServerTimeSync
                 var handler = (Socket) ar.AsyncState;
 
                 // Complete sending the data to the remote device.
-                var bytesSent = handler.EndSend(ar);
+                var bytesSent = handler.EndSendTo(ar);
                 Console.WriteLine("Sent {0} bytes to client.", bytesSent);
 
                 if (OnSend != null)

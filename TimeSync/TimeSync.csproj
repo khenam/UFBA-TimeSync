@@ -19,6 +19,7 @@
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
+    <Commandlineparameters>server 4782</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>full</DebugType>
@@ -38,11 +39,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TimeSyncBase\TimeSyncBase.csproj">
-      <Project>{1e9f59d7-6dac-4c8c-98fe-840e7037b410}</Project>
+      <Project>{1E9F59D7-6DAC-4C8C-98FE-840E7037B410}</Project>
       <Name>TimeSyncBase</Name>
     </ProjectReference>
     <ProjectReference Include="..\TimeSyncNodes\TimeSyncNodes.csproj">
-      <Project>{76f85f84-f1bc-46a0-9aa8-881d816ce328}</Project>
+      <Project>{76F85F84-F1BC-46A0-9AA8-881D816CE328}</Project>
       <Name>TimeSyncNodes</Name>
     </ProjectReference>
   </ItemGroup>

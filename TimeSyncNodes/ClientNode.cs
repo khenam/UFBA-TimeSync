@@ -177,7 +177,7 @@ namespace TimeSyncNodes
 			uint referenceSeconds = GetPullSyncTime () / 1000 * 10;
 			foreach (var last in lastReceiveMessage) 
 			{
-				if ( _clients.Any(item => item.Value.Equals (last.Key)) && IsTimeExceeded (last.Value,referenceSeconds)) 
+				if ( _clients.Any(item => item.Key != RemoteServerHash && item.Value.Equals (last.Key)) && IsTimeExceeded (last.Value,referenceSeconds)) 
 				{
 					_clients.Remove (_clients.First (item => item.Value.Equals (last.Key)).Key);
 					//lastReceiveMessage.Remove (last.Key);
@@ -282,7 +282,7 @@ namespace TimeSyncNodes
         public override List<ConnectionBase> GetActiveConnections()
         {
 			return _clients.Values.Cast<ConnectionBase>().Where(item => {
-				if (lastReceiveMessage.ContainsKey (item) && !lastReceiveMessage.ContainsKey(_clients[RemoteServerHash]))
+				if (lastReceiveMessage.ContainsKey (item))
 					return !IsTimeExceeded(lastReceiveMessage[item]);
 				else
 					return true;

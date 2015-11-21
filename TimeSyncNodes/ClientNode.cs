@@ -10,6 +10,7 @@ using ServerTimeSync;
 using TimeSyncBase;
 using TimeSyncBase.Connection;
 using Timer = System.Timers.Timer;
+using TimeSyncBase.messages.responseless;
 
 namespace TimeSyncNodes
 {
@@ -147,6 +148,15 @@ namespace TimeSyncNodes
 				var connection = _clients.First (item => item.Value.Equals ((ConnectionBase)sender)).Value;
 				UpdateLastTimeConnection (connection);
 			}
+			SendTimeSyncResponseLess ();
+		}
+
+		private void SendTimeSyncResponseLess()
+		{
+			foreach (var client in _clients)
+			{
+				client.Value.SyncTimeResponseLess();
+			}
 		}
 
 		void UpdateLastTimeConnection (ConnectionBase connection)
@@ -183,9 +193,9 @@ namespace TimeSyncNodes
 
         private void SendSyncMessage(object sender, ElapsedEventArgs e)
         {
-            foreach (var client in _clients)
+            //foreach (var client in _clients)
             {
-                client.Value.SyncTime();
+				_clients[RemoteServerHash].SyncTime();
             }
             if (OnNodesConnectedChange != null)
                 new Thread(() => OnNodesConnectedChange(this, GetActiveConnections())).Start();
@@ -272,7 +282,7 @@ namespace TimeSyncNodes
         public override List<ConnectionBase> GetActiveConnections()
         {
 			return _clients.Values.Cast<ConnectionBase>().Where(item => {
-				if (lastReceiveMessage.ContainsKey (item))
+				if (lastReceiveMessage.ContainsKey (item) && !lastReceiveMessage.ContainsKey(_clients[RemoteServerHash]))
 					return !IsTimeExceeded(lastReceiveMessage[item]);
 				else
 					return true;
@@ -299,5 +309,23 @@ namespace TimeSyncNodes
         {
             return (uint) _pullGetClients.Interval;
         }
+
+		protected override void OnTimeSyncResponseLessEvent (object sender, StateObject so, TimeSyncResponseless message)
+		{
+			try
+			{
+				var endPoint = ((IPEndPoint)so.RemoteEndPoint);
+				if (_clients.ContainsKey(endPoint.Address.ToString()))
+				{
+					_clients[endPoint.Address.ToString()].GetLocalTime().SetDateTime(message.ResponseTime);
+					UpdateLastTimeConnection(_clients[endPoint.Address.ToString()]);
+				}
+				else
+					AddNewItensInList(GetIpAddressFromHostName(endPoint.Address.ToString()), (uint) endPoint.Port);
+			}catch 
+			{
+				// ignored	
+			}
+		}
     }
 }

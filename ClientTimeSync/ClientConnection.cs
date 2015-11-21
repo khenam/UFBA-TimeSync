@@ -8,6 +8,7 @@ using TimeSyncBase.Connection;
 using TimeSyncBase.messages;
 using TimeSyncBase.messages.requests;
 using TimeSyncBase.messages.responses;
+using TimeSyncBase.messages.responseless;
 
 namespace ClientTimeSync
 {
@@ -137,6 +138,13 @@ namespace ClientTimeSync
             timeSyncRequest.RequestTime = _localTime.GetDateTime();
             _asynchronousClient.Send(timeSyncRequest.ToJSON());
         }
+
+		public void SyncTimeResponseLess ()
+		{
+			var timeSyncResponseless = new TimeSyncResponseless();
+			timeSyncResponseless.ResponseTime = _localTime.GetDateTime();
+			_asynchronousClient.Send(timeSyncResponseless.ToJSON());
+		}
 
         public override IPAddress GetIP()
         {

@@ -9,6 +9,7 @@ using TimeSyncBase.Connection;
 using TimeSyncBase.messages;
 using TimeSyncBase.messages.requests;
 using TimeSyncBase.messages.responses;
+using TimeSyncBase.messages.responseless;
 
 namespace ServerTimeSync
 {
@@ -18,7 +19,7 @@ namespace ServerTimeSync
         private readonly LocalTime _localTime;
         private readonly List<Socket> _socketList;
         private Thread _serverThread;
-        private List<NodeReference> _listIpPort = new List<NodeReference>(); 
+        private List<NodeReference> _listIpPort = new List<NodeReference>();
 
         public ServerConnection() : this(DefaultPort)
         {
@@ -45,6 +46,7 @@ namespace ServerTimeSync
         public event EventHandler<Socket> OnConnect;
         public event EventHandler<StateObject> OnReceive;
         public event EventHandler<int> OnSend;
+		public event Action<object,StateObject,TimeSyncResponseless> OnTimeSyncResponseLess;
 
         private void ListnerEvents()
         {
@@ -78,7 +80,9 @@ namespace ServerTimeSync
                 Send(so, BuildTimeSyncConnectResponse((TimeSyncConnectRequest) message, so));
             else if (message is TimeSyncSimpleRequest)
                 Send(so, BuildTimeSyncResponseSimple((TimeSyncSimpleRequest) message, so.receiveTime));
-            else if (message is TimeSyncRequest)
+			else if (message is TimeSyncResponseless)
+				HandleTimeSyncResponseLess((TimeSyncResponseless) message, so);
+			else if (message is TimeSyncRequest)
                 Send(so, BuildTimeSyncResponse((TimeSyncRequest) message, so.receiveTime));
             else if (message is TimeSyncConnectedClientsRequest)
                 Send(so, BuildTimeSyncConnectedClientsResponse());
@@ -176,6 +180,12 @@ namespace ServerTimeSync
             response.ResponseTime = _localTime.GetDateTime();
             return response.ToJSON();
         }
+
+		void HandleTimeSyncResponseLess (TimeSyncResponseless timeSyncResponseless, StateObject so)
+		{
+			if (OnTimeSyncResponseLess != null)
+				new Thread(() => OnTimeSyncResponseLess(this, so,  timeSyncResponseless)).Start();
+		}
 
         private void OnConnectEvent(object sender, Socket socket)
         {

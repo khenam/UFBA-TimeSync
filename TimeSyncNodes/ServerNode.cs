@@ -6,6 +6,7 @@ using System.Threading;
 using ServerTimeSync;
 using TimeSyncBase;
 using TimeSyncBase.Connection;
+using TimeSyncBase.messages.responseless;
 
 namespace TimeSyncNodes
 {
@@ -50,6 +51,7 @@ namespace TimeSyncNodes
         public bool IsRunning { get; private set; }
         public IPAddress IpAddress { get; set; }
         public uint Port { get; set; }
+		public event Action<object,StateObject,TimeSyncResponseless> OnTimeSyncResponseLess;
 
         public virtual bool StartService()
         {
@@ -88,6 +90,7 @@ namespace TimeSyncNodes
         private void InitializeComponets()
         {
             _server.OnStartListner += OnStartListnerEvent;
+			_server.OnTimeSyncResponseLess += OnTimeSyncResponseLessEvent; 
         }
 
         private void OnStartListnerEvent(object sender, Socket e)
@@ -95,6 +98,12 @@ namespace TimeSyncNodes
             IsRunning = true;
             ServerIsRunning.Set();
         }
+
+		protected virtual void OnTimeSyncResponseLessEvent (object sender, StateObject so, TimeSyncResponseless message)
+		{
+			if (OnTimeSyncResponseLess != null)
+				new Thread(() => OnTimeSyncResponseLess(sender, so,  message)).Start();			
+		}
 
         public void UpdateDateTimeServer(DateTime newDateTime)
         {

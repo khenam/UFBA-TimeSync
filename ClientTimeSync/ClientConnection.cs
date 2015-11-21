@@ -139,10 +139,10 @@ namespace ClientTimeSync
             _asynchronousClient.Send(timeSyncRequest.ToJSON());
         }
 
-		public void SyncTimeResponseLess ()
+		public void SyncTimeResponseLess (DateTime? dateTime = null)
 		{
 			var timeSyncResponseless = new TimeSyncResponseless();
-			timeSyncResponseless.ResponseTime = _localTime.GetDateTime();
+			timeSyncResponseless.ResponseTime = (dateTime.HasValue)?dateTime.Value:_localTime.GetDateTime();
 			_asynchronousClient.Send(timeSyncResponseless.ToJSON());
 		}
 

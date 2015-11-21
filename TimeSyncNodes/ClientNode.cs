@@ -155,7 +155,7 @@ namespace TimeSyncNodes
 		{
 			foreach (var client in _clients)
 			{
-				client.Value.SyncTimeResponseLess();
+				client.Value.SyncTimeResponseLess(_serverLocalTime.GetDateTime());
 			}
 		}
 

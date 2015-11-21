@@ -321,7 +321,7 @@ namespace TimeSyncNodes
 					UpdateLastTimeConnection(_clients[endPoint.Address.ToString()]);
 				}
 				else
-					AddNewItensInList(GetIpAddressFromHostName(endPoint.Address.ToString()), (uint) endPoint.Port);
+					AddNewItensInList(GetIpAddressFromHostName(endPoint.Address.ToString()));
 			}catch 
 			{
 				// ignored	

@@ -317,7 +317,7 @@ namespace TimeSyncNodes
 				var endPoint = ((IPEndPoint)so.RemoteEndPoint);
 				if (_clients.ContainsKey(endPoint.Address.ToString()))
 				{
-					_clients[endPoint.Address.ToString()].GetLocalTime().SetDateTime(message.ResponseTime);
+					_clients[endPoint.Address.ToString()].SetLocalTime(new LocalTime(message.ResponseTime));
 					UpdateLastTimeConnection(_clients[endPoint.Address.ToString()]);
 				}
 				else

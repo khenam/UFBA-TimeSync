@@ -27,5 +27,6 @@ namespace TimeSyncBase.Connection
         public abstract IPAddress GetIP();
         public abstract uint GetPort();
         public abstract LocalTime GetLocalTime();
+		public abstract void SetLocalTime (LocalTime localTime);
     }
 }

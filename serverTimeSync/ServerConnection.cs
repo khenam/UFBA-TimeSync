@@ -112,6 +112,11 @@ namespace ServerTimeSync
             return (LocalTime) _localTime.Clone();
         }
 
+		public override void SetLocalTime(LocalTime localTime)
+		{
+			_localTime.SetTimeSpan(localTime.GetTimeSpan());
+		}
+
         private string BuildTimeSyncConnectResponse(TimeSyncConnectRequest message, StateObject so)
         {
             UpdateIpPortList(((IPEndPoint )so.RemoteEndPoint).Address, message.NewConnectionPort);

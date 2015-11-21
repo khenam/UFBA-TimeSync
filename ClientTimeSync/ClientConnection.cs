@@ -156,10 +156,15 @@ namespace ClientTimeSync
             return GetRemotePort();
         }
 
-        public override LocalTime GetLocalTime()
-        {
-            return (LocalTime) _localTime.Clone();
-        }
+		public override LocalTime GetLocalTime()
+		{
+			return (LocalTime) _localTime.Clone();
+		}
+
+		public override void SetLocalTime(LocalTime localTime)
+		{
+			_localTime.SetTimeSpan(localTime.GetTimeSpan());
+		}
 
         protected override void HandleCorrectResponse(StateObject so, TimeSyncMessage message)
         {

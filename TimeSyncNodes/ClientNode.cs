@@ -20,9 +20,11 @@ namespace TimeSyncNodes
         private bool _clientIsRunning = false;
         private Timer _pullGetClients;
         private Timer _pullTimer;
+		private Timer _checkClientsConnections;
         private uint _lowerPullSyncInterval = 100;
         private uint _lowerPullSyncClientsInterval = 1000;
         public EventHandler<List<ConnectionBase>> OnNodesConnectedChange;
+		private Dictionary<ConnectionBase,DateTime> lastReceiveMessage = new Dictionary<ConnectionBase, DateTime>();
 
         public ClientNode(string hostName)
         {
@@ -50,16 +52,19 @@ namespace TimeSyncNodes
 
         private void InitializeClient(string hostName, bool checkServerPort = false, uint? port = null)
         {
-            DefaultTimeOut = 60*1000;
+            DefaultTimeOut = 10*1000;
             if (checkServerPort)
                 AddNewItensInList(GetIpAddressFromHostName(hostName), port, _serverLocalTime, RemoteServerHash);
             else
                 AddNewItensInList(GetIpAddressFromHostName(hostName), null, _serverLocalTime, RemoteServerHash);
             TryRegisterRemoteServerHostEvents();
-            _pullTimer = new Timer(30*1000);
+			_pullTimer = new Timer(DefaultTimeOut);
             _pullTimer.Elapsed += SendSyncMessage;
-            _pullGetClients = new Timer(60*1000);
+			_checkClientsConnections = new Timer(1000);
+			_checkClientsConnections.Elapsed += CheckClients; 
+			_pullGetClients = new Timer(DefaultTimeOut * 1.5);
             _pullGetClients.Elapsed += SendGetClientsMessage;
+			//_checkClientsConnections.Enabled = true;
         }
 
         private void TryRegisterRemoteServerHostEvents()
@@ -84,8 +89,11 @@ namespace TimeSyncNodes
             foreach (var address in ipAddresses)
             {
                 IPAddress bufferIp;
-                if (IPAddress.TryParse(address.IpAddress, out bufferIp))
-                    AddNewItensInList(bufferIp, Port);
+				if (IPAddress.TryParse (address.IpAddress, out bufferIp))
+					if (lastReceiveMessage.ContainsKey((ConnectionBase)sender))
+						if (IsTimeExceeded (lastReceiveMessage[(ConnectionBase)sender]))
+							continue;
+					AddNewItensInList(bufferIp, Port);
             }
         }
 
@@ -94,7 +102,7 @@ namespace TimeSyncNodes
             if (!IsLocalIpAddress(ipAddress.ToString(), port) &&
                 _clients.All(client => !(Equals(client.Value.GetRemoteIpAddress(), ipAddress) && Equals(client.Value.GetRemotePort(), port.HasValue ? port.Value : client.Value.GetRemotePort()))))
             {
-                var key = keyName ?? ipAddress.GetAddressBytes().ToString();
+                var key = keyName ?? ipAddress.ToString();
                 ClientConnection clientConnection;
                 if (localTime == null)
                     clientConnection = port.HasValue
@@ -107,7 +115,9 @@ namespace TimeSyncNodes
 
                 _clients.Add(key, clientConnection);
                 _clients[key].OnDisconnect += OnDisconnectRemoveFromList;
+				_clients[key].OnTimeSync += OnTimeSyncEvent;
                 TryConnectNewAddress(key);
+				UpdateLastTimeConnection (clientConnection);
 
                 if (OnNodesConnectedChange != null)
                     new Thread(() => OnNodesConnectedChange(this, GetActiveConnections())).Start();
@@ -134,10 +144,44 @@ namespace TimeSyncNodes
                 new Thread(() => OnNodesConnectedChange(this, GetActiveConnections())).Start();
         }
 
+		void OnTimeSyncEvent (object sender, DateTime e)
+		{
+			if (_clients.ContainsKey(_clients.First(item => item.Value.Equals((ConnectionBase)sender)).Key))
+			{
+				var connection = _clients.First (item => item.Value.Equals ((ConnectionBase)sender)).Value;
+				UpdateLastTimeConnection (connection);
+			}
+		}
+
+		void UpdateLastTimeConnection (ClientConnection connection)
+		{
+			if (lastReceiveMessage.ContainsKey (connection))
+				lastReceiveMessage [connection] = DateTime.UtcNow;
+			else
+				lastReceiveMessage.Add (connection, DateTime.UtcNow);
+		}
+
         private void SendGetClientsMessage(object sender, ElapsedEventArgs e)
         {
             _clients[RemoteServerHash].FoundNewClients();
         }
+
+		private void CheckClients(object sender, ElapsedEventArgs e)
+		{
+			foreach (var last in lastReceiveMessage) 
+			{
+				if (IsTimeExceeded (last.Value)) 
+				{
+					_clients.Remove (_clients.First (item => item.Value.Equals (last.Key)).Key);
+					//lastReceiveMessage.Remove (last.Key);
+				}
+			}
+		}
+
+		bool IsTimeExceeded (DateTime dateTimeConnection)
+		{
+			return DateTime.UtcNow.Subtract(dateTimeConnection.ToUniversalTime()).TotalSeconds > (GetPullSyncTime ()/1000 * 2.5);
+		}
 
         private void SendSyncMessage(object sender, ElapsedEventArgs e)
         {
@@ -227,7 +271,12 @@ namespace TimeSyncNodes
 
         public override List<ConnectionBase> GetActiveConnections()
         {
-            return _clients.Values.Cast<ConnectionBase>().ToList();
+			return _clients.Values.Cast<ConnectionBase>().Where(item => {
+				if (lastReceiveMessage.ContainsKey (item))
+					return !IsTimeExceeded(lastReceiveMessage[item]);
+				else
+					return true;
+			}).ToList();
         }
 
         public void SetPullSyncTime(uint interval)

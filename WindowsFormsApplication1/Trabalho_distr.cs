@@ -87,6 +87,7 @@ namespace WindowsFormsApplication1
                     {
                         if (Tabela.Rows.Count > 0)
                             Tabela.Rows.Clear();
+						Tabela.Rows.Add("Local", "", e[0].GetLocalTime().GetDateTime().ToString());
                         foreach (var refNode in e)
                         {
                             Tabela.Rows.Add(refNode.GetIP().ToString(), refNode.GetPort().ToString(), refNode.GetLocalTime().GetDateTime().ToString());

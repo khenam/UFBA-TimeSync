@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Timers;
 using System.Windows.Forms;
 using TimeSyncBase.Connection;
@@ -87,10 +88,10 @@ namespace WindowsFormsApplication1
                     {
                         if (Tabela.Rows.Count > 0)
                             Tabela.Rows.Clear();
-						Tabela.Rows.Add("Local", "", e[0].GetLocalTime().GetDateTime().ToString());
+						Tabela.Rows.Add("Local", "", _node.GetDateTime(false).ToString(CultureInfo.CurrentCulture));
                         foreach (var refNode in e)
                         {
-                            Tabela.Rows.Add(refNode.GetIP().ToString(), refNode.GetPort().ToString(), refNode.GetLocalTime().GetDateTime().ToString());
+                            Tabela.Rows.Add(refNode.GetIP().ToString(), refNode.GetPort().ToString(), refNode.GetLocalTime().GetDateTime().ToString(CultureInfo.CurrentCulture));
                         }
                     }
                     catch (Exception)

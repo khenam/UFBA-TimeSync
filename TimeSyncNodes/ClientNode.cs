@@ -60,11 +60,10 @@ namespace TimeSyncNodes
             TryRegisterRemoteServerHostEvents();
 			_pullTimer = new Timer(DefaultTimeOut);
             _pullTimer.Elapsed += SendSyncMessage;
-			_checkClientsConnections = new Timer(1000);
+			_checkClientsConnections = new Timer(DefaultTimeOut * 5);
 			_checkClientsConnections.Elapsed += CheckClients; 
 			_pullGetClients = new Timer(DefaultTimeOut * 1.5);
             _pullGetClients.Elapsed += SendGetClientsMessage;
-			//_checkClientsConnections.Enabled = true;
         }
 
         private void TryRegisterRemoteServerHostEvents()
@@ -90,9 +89,6 @@ namespace TimeSyncNodes
             {
                 IPAddress bufferIp;
 				if (IPAddress.TryParse (address.IpAddress, out bufferIp))
-					if (lastReceiveMessage.ContainsKey((ConnectionBase)sender))
-						if (IsTimeExceeded (lastReceiveMessage[(ConnectionBase)sender]))
-							continue;
 					AddNewItensInList(bufferIp, Port);
             }
         }
@@ -153,7 +149,7 @@ namespace TimeSyncNodes
 			}
 		}
 
-		void UpdateLastTimeConnection (ClientConnection connection)
+		void UpdateLastTimeConnection (ConnectionBase connection)
 		{
 			if (lastReceiveMessage.ContainsKey (connection))
 				lastReceiveMessage [connection] = DateTime.UtcNow;
@@ -168,9 +164,10 @@ namespace TimeSyncNodes
 
 		private void CheckClients(object sender, ElapsedEventArgs e)
 		{
+			uint referenceSeconds = GetPullSyncTime () / 1000 * 10;
 			foreach (var last in lastReceiveMessage) 
 			{
-				if (IsTimeExceeded (last.Value)) 
+				if ( _clients.Any(item => item.Value.Equals (last.Key)) && IsTimeExceeded (last.Value,referenceSeconds)) 
 				{
 					_clients.Remove (_clients.First (item => item.Value.Equals (last.Key)).Key);
 					//lastReceiveMessage.Remove (last.Key);
@@ -178,9 +175,10 @@ namespace TimeSyncNodes
 			}
 		}
 
-		bool IsTimeExceeded (DateTime dateTimeConnection)
+		bool IsTimeExceeded (DateTime dateTimeConnection, uint? referenceSeconds = null)
 		{
-			return DateTime.UtcNow.Subtract(dateTimeConnection.ToUniversalTime()).TotalSeconds > (GetPullSyncTime ()/1000 * 2.5);
+			var testedReferenceSeconds = (!referenceSeconds.HasValue)? GetPullSyncTime () / 1000 * 2.5 : referenceSeconds.Value;
+			return DateTime.UtcNow.Subtract(dateTimeConnection.ToUniversalTime()).TotalSeconds > (testedReferenceSeconds);
 		}
 
         private void SendSyncMessage(object sender, ElapsedEventArgs e)
@@ -199,6 +197,7 @@ namespace TimeSyncNodes
             new Thread(StartClients).Start();
             _pullTimer.Enabled = true;
             _pullGetClients.Enabled = true;
+			//_checkClientsConnections.Enabled = true;
             return _clientIsRunning = true;
         }
 
@@ -216,6 +215,7 @@ namespace TimeSyncNodes
         {
             _pullTimer.Enabled = false;
             _pullGetClients.Enabled = false;
+			_checkClientsConnections.Enabled = false;
             base.StopService();
             StopClients();
             _clientIsRunning = false;
@@ -282,6 +282,7 @@ namespace TimeSyncNodes
         public void SetPullSyncTime(uint interval)
         {
             _pullTimer.Interval = interval > _lowerPullSyncInterval ? interval : _lowerPullSyncInterval;
+			_checkClientsConnections.Interval = _pullTimer.Interval * 2;
         }
 
         public uint GetPullSyncTime()

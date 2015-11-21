@@ -62,7 +62,7 @@ namespace ClientTimeSync
             // Connect to a remote device.
             try
             {
-                var remoteEP = getRemoteEndPoint();
+                //var remoteEP = getRemoteEndPoint();
 
                 // Create a UDP/IP socket.
                 _client = new Socket(AddressFamily.InterNetwork,

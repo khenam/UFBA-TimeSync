@@ -14,6 +14,8 @@ namespace WindowsFormsApplication1
     public partial class Servidor_config : Form
     {
         public ClientNode Node { get; set; }
+		public string IPServer;
+		public string PortServer;
 
         public Servidor_config()
         {
@@ -35,10 +37,15 @@ namespace WindowsFormsApplication1
             }
         }
         
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
+		private void textBox2_TextChanged(object sender, EventArgs e)
+		{
+			PortServer = tbxPortServer.Text;
+		}
 
-        }
+		private void tbxHostServer_TextChanged(object sender, EventArgs e)
+		{
+			IPServer = tbxHostServer.Text;
+		}
 
         private void Servidor_config_Load(object sender, EventArgs e)
         {

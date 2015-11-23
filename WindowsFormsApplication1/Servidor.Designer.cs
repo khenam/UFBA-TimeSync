@@ -51,6 +51,7 @@
             this.tbxHostServer.Name = "tbxHostServer";
             this.tbxHostServer.Size = new System.Drawing.Size(168, 20);
             this.tbxHostServer.TabIndex = 1;
+			this.tbxHostServer.TextChanged += new System.EventHandler(this.tbxHostServer_TextChanged);
             // 
             // Porta_servidor
             // 

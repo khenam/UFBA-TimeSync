@@ -35,8 +35,9 @@
             this.sairToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configuraçãoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.servidorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.clienteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.Tabela = new System.Windows.Forms.DataGridView();
+			this.clienteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.AjustPoolingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.Tabela = new System.Windows.Forms.DataGridView();
             this.IP = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Porta = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Hora = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -89,8 +90,10 @@
             // configuraçãoToolStripMenuItem
             // 
             this.configuraçãoToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.servidorToolStripMenuItem,
-            this.clienteToolStripMenuItem});
+            	this.servidorToolStripMenuItem,
+            	this.clienteToolStripMenuItem,
+				this.AjustPoolingToolStripMenuItem
+			});
             this.configuraçãoToolStripMenuItem.Name = "configuraçãoToolStripMenuItem";
             this.configuraçãoToolStripMenuItem.Size = new System.Drawing.Size(91, 20);
             this.configuraçãoToolStripMenuItem.Text = "Configuração";
@@ -101,14 +104,21 @@
             this.servidorToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
             this.servidorToolStripMenuItem.Text = "Servidor";
             this.servidorToolStripMenuItem.Click += new System.EventHandler(this.servidorToolStripMenuItem_Click);
-            // 
-            // clienteToolStripMenuItem
-            // 
-            this.clienteToolStripMenuItem.Name = "clienteToolStripMenuItem";
-            this.clienteToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-            this.clienteToolStripMenuItem.Text = "Cliente";
-            this.clienteToolStripMenuItem.Click += new System.EventHandler(this.clienteToolStripMenuItem_Click);
-            // 
+			// 
+			// clienteToolStripMenuItem
+			// 
+			this.clienteToolStripMenuItem.Name = "clienteToolStripMenuItem";
+			this.clienteToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+			this.clienteToolStripMenuItem.Text = "Cliente";
+			this.clienteToolStripMenuItem.Click += new System.EventHandler(this.clienteToolStripMenuItem_Click);
+			// 
+			// AjustPoolingToolStripMenuItem
+			// 
+			this.AjustPoolingToolStripMenuItem.Name = "AjustPoolingToolStripMenuItem";
+			this.AjustPoolingToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+			this.AjustPoolingToolStripMenuItem.Text = "Ajuste Pulling";
+			this.AjustPoolingToolStripMenuItem.Click += new System.EventHandler(this.AjustPoolingToolStripMenuItem_Click);
+			// 
             // Tabela
             // 
             this.Tabela.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -162,7 +172,7 @@
             this.PerformLayout();
 
         }
-
+			
         #endregion
 
         private System.Windows.Forms.MenuStrip menuStrip1;
@@ -172,8 +182,9 @@
         private System.Windows.Forms.ToolStripMenuItem sairToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configuraçãoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem servidorToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem clienteToolStripMenuItem;
-        private System.Windows.Forms.DataGridView Tabela;
+		private System.Windows.Forms.ToolStripMenuItem clienteToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem AjustPoolingToolStripMenuItem;
+		private System.Windows.Forms.DataGridView Tabela;
         private System.Windows.Forms.DataGridViewTextBoxColumn IP;
         private System.Windows.Forms.DataGridViewTextBoxColumn Porta;
         private System.Windows.Forms.DataGridViewTextBoxColumn Hora;

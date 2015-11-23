@@ -13,6 +13,8 @@ namespace WindowsFormsApplication1
     {
         private ClientNode _node;
         private Timer _refrashTimer = new Timer();
+		string _serverIPRef;
+		string _serverPortRef;
 
         public Principal()
         {
@@ -65,6 +67,9 @@ namespace WindowsFormsApplication1
             if (form.Node != null)
             {
                 _node = form.Node;
+				_serverIPRef = form.IPServer;
+				_serverPortRef = form.PortServer;
+
 //                registerEvents(_node);
                 _node.StartService();
                 updateViewConnections(this, _node.GetActiveConnections());
@@ -91,7 +96,10 @@ namespace WindowsFormsApplication1
 						Tabela.Rows.Add("Local", "", _node.GetDateTime(false).ToString(CultureInfo.CurrentCulture));
                         foreach (var refNode in e)
                         {
-                            Tabela.Rows.Add(refNode.GetIP().ToString(), refNode.GetPort().ToString(), refNode.GetLocalTime().GetDateTime().ToString(CultureInfo.CurrentCulture));
+								string typeNode = "C";
+								if (_serverIPRef == refNode.GetIP().ToString() && _serverPortRef == refNode.GetPort().ToString())
+									typeNode = "S";
+								Tabela.Rows.Add(string.Format("{0} {1}",typeNode,refNode.GetIP().ToString()), refNode.GetPort().ToString(), refNode.GetLocalTime().GetDateTime().ToString(CultureInfo.CurrentCulture));
                         }
                     }
                     catch (Exception)
@@ -119,5 +127,14 @@ namespace WindowsFormsApplication1
             if (_node != null)
                 _node.StopService();
         }
+
+		private void AjustPoolingToolStripMenuItem_Click (object sender, System.EventArgs e)
+		{
+			if (_node == null)
+				return;
+			string input = Microsoft.VisualBasic.Interaction.InputBox("Digite o novo tempo de pulling (ms):", "Parametro tempo de Pulling", _node.GetPullSyncTime().ToString(), -1, -1);
+			if (!string.IsNullOrWhiteSpace (input))
+				_node.SetPullSyncTime (uint.Parse(input));
+		}
     }
 }
